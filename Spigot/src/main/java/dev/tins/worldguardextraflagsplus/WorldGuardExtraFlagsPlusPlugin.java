@@ -125,7 +125,7 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 	@Override
 	public void onEnable()
 	{
-		// Initialize messages system first (loads messages.yml from WorldGuard folder)
+		// Initialize messages system first (loads messages-wgefp.yml from WorldGuard folder)
 		Messages.initialize(this);
 		
 		// Initialize config system (loads config-wgefp.yml from WorldGuard folder)

@@ -29,16 +29,16 @@ public class Messages
 		// Get WorldGuard plugin data folder
 		File worldGuardDataFolder = plugin.getServer().getPluginManager().getPlugin("WorldGuard").getDataFolder();
 		
-		// Create messages.yml in WorldGuard folder
-		messagesFile = new File(worldGuardDataFolder, "messages.yml");
+		// Create messages-wgefp.yml in WorldGuard folder
+		messagesFile = new File(worldGuardDataFolder, "messages-wgefp.yml");
 		
-		// Copy default messages.yml if it doesn't exist
+		// Copy default messages-wgefp.yml if it doesn't exist
 		if (!messagesFile.exists())
 		{
 			saveDefaultMessages(worldGuardDataFolder);
 		}
 		
-		// Load messages.yml
+		// Load messages-wgefp.yml
 		reloadMessages();
 	}
 
@@ -52,19 +52,19 @@ public class Messages
 				worldGuardDataFolder.mkdirs();
 			}
 			
-			// Check if messages.yml already exists in WorldGuard folder
+			// Check if messages-wgefp.yml already exists in WorldGuard folder
 			if (messagesFile.exists())
 			{
 				// File already exists, don't overwrite it (admin might have customized it)
-				plugin.getLogger().info("messages.yml already exists in WorldGuard folder, skipping default copy.");
+				plugin.getLogger().info("messages-wgefp.yml already exists in WorldGuard folder, skipping default copy.");
 				return;
 			}
 			
 			// Load default messages from plugin resources
-			InputStream defaultStream = plugin.getResource("messages.yml");
+			InputStream defaultStream = plugin.getResource("messages-wgefp.yml");
 			if (defaultStream == null)
 			{
-				plugin.getLogger().warning("Default messages.yml not found in plugin resources!");
+				plugin.getLogger().warning("Default messages-wgefp.yml not found in plugin resources!");
 				return;
 			}
 			
@@ -79,11 +79,11 @@ public class Messages
 			outputStream.close();
 			defaultStream.close();
 			
-			plugin.getLogger().info("Created messages.yml in WorldGuard folder: " + messagesFile.getAbsolutePath());
+			plugin.getLogger().info("Created messages-wgefp.yml in WorldGuard folder: " + messagesFile.getAbsolutePath());
 		}
 		catch (Exception e)
 		{
-			plugin.getLogger().log(Level.SEVERE, "Failed to save default messages.yml", e);
+			plugin.getLogger().log(Level.SEVERE, "Failed to save default messages-wgefp.yml", e);
 		}
 	}
 
@@ -94,7 +94,7 @@ public class Messages
 			messages = YamlConfiguration.loadConfiguration(messagesFile);
 			
 			// Load UTF-8 encoding properly
-			InputStream defaultStream = plugin.getResource("messages.yml");
+			InputStream defaultStream = plugin.getResource("messages-wgefp.yml");
 			if (defaultStream != null)
 			{
 				InputStreamReader reader = new InputStreamReader(defaultStream, StandardCharsets.UTF_8);
@@ -117,7 +117,7 @@ public class Messages
 		}
 		catch (Exception e)
 		{
-			plugin.getLogger().log(Level.SEVERE, "Failed to load messages.yml", e);
+			plugin.getLogger().log(Level.SEVERE, "Failed to load messages-wgefp.yml", e);
 			// Fallback: use in-memory configuration
 			messages = new YamlConfiguration();
 			messageCooldownSeconds = 3; // Default fallback
