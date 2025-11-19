@@ -31,3 +31,6 @@ entry-max-level-denied: "&cYour level (&7{current}&c) is so high to enter this a
 # Permit completely flag message
 permit-completely-blocked: "&cHey! &7You can not use {item} in here!"
 
+# Permit workbenches flag message
+permit-workbenches-blocked: "&cHey! &7You can not use {workbench} in here!"
+

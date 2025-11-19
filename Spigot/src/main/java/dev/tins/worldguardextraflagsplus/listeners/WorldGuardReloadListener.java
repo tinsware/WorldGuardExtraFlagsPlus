@@ -1,6 +1,7 @@
 package dev.tins.worldguardextraflagsplus.listeners;
 
 import dev.tins.worldguardextraflagsplus.Messages;
+import dev.tins.worldguardextraflagsplus.Config;
 import dev.tins.worldguardextraflagsplus.WorldGuardExtraFlagsPlusPlugin;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -27,13 +28,14 @@ public class WorldGuardReloadListener implements Listener
 		{
 			try
 			{
-				// Reload our messages when WorldGuard reload is triggered
+				// Reload our messages and config when WorldGuard reload is triggered
 				Messages.reloadMessages();
-				plugin.getLogger().info("Messages reloaded automatically due to WorldGuard reload command");
+				Config.reloadConfig();
+				plugin.getLogger().info("Messages and config reloaded automatically due to WorldGuard reload command");
 			}
 			catch (Exception e)
 			{
-				plugin.getLogger().warning("Failed to reload messages during WorldGuard reload: " + e.getMessage());
+				plugin.getLogger().warning("Failed to reload messages/config during WorldGuard reload: " + e.getMessage());
 			}
 		}
 	}
@@ -48,13 +50,14 @@ public class WorldGuardReloadListener implements Listener
 		{
 			try
 			{
-				// Reload our messages when WorldGuard reload is triggered
+				// Reload our messages and config when WorldGuard reload is triggered
 				Messages.reloadMessages();
-				plugin.getLogger().info("Messages reloaded automatically due to WorldGuard reload command");
+				Config.reloadConfig();
+				plugin.getLogger().info("Messages and config reloaded automatically due to WorldGuard reload command");
 			}
 			catch (Exception e)
 			{
-				plugin.getLogger().warning("Failed to reload messages during WorldGuard reload: " + e.getMessage());
+				plugin.getLogger().warning("Failed to reload messages/config during WorldGuard reload: " + e.getMessage());
 			}
 		}
 	}

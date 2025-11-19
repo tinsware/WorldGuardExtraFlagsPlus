@@ -32,8 +32,11 @@ import lombok.RequiredArgsConstructor;
 import dev.tins.worldguardextraflagsplus.flags.Flags;
 import dev.tins.worldguardextraflagsplus.flags.helpers.BlockableItemFlag;
 import dev.tins.worldguardextraflagsplus.Messages;
+import dev.tins.worldguardextraflagsplus.Config;
 
 import java.util.Set;
+import java.util.Map;
+import java.util.HashMap;
 
 @RequiredArgsConstructor
 public class EntityListener implements Listener
@@ -44,6 +47,48 @@ public class EntityListener implements Listener
 
 	// Get blockable items list from the flag helper (single source of truth)
 	private static final Set<String> BLOCKABLE_ITEMS = BlockableItemFlag.getBlockableItems();
+	
+	// Workbench type mappings
+	private static final Map<Material, String> WORKBENCH_TYPE_MAP = new HashMap<>();
+	private static final Map<Material, String> WORKBENCH_DISPLAY_NAMES = new HashMap<>();
+	static
+	{
+		// Anvil types
+		WORKBENCH_TYPE_MAP.put(Material.ANVIL, "ANVIL");
+		WORKBENCH_TYPE_MAP.put(Material.CHIPPED_ANVIL, "ANVIL");
+		WORKBENCH_TYPE_MAP.put(Material.DAMAGED_ANVIL, "ANVIL");
+		WORKBENCH_DISPLAY_NAMES.put(Material.ANVIL, "Anvil");
+		WORKBENCH_DISPLAY_NAMES.put(Material.CHIPPED_ANVIL, "Anvil");
+		WORKBENCH_DISPLAY_NAMES.put(Material.DAMAGED_ANVIL, "Anvil");
+		
+		// Cartography table
+		WORKBENCH_TYPE_MAP.put(Material.CARTOGRAPHY_TABLE, "CARTOGRAPHY");
+		WORKBENCH_DISPLAY_NAMES.put(Material.CARTOGRAPHY_TABLE, "Cartography Table");
+		
+		// Crafting table
+		WORKBENCH_TYPE_MAP.put(Material.CRAFTING_TABLE, "CRAFT");
+		WORKBENCH_DISPLAY_NAMES.put(Material.CRAFTING_TABLE, "Crafting Table");
+		
+		// Ender chest
+		WORKBENCH_TYPE_MAP.put(Material.ENDER_CHEST, "ENDER");
+		WORKBENCH_DISPLAY_NAMES.put(Material.ENDER_CHEST, "Ender Chest");
+		
+		// Grindstone
+		WORKBENCH_TYPE_MAP.put(Material.GRINDSTONE, "GRINDSTONE");
+		WORKBENCH_DISPLAY_NAMES.put(Material.GRINDSTONE, "Grindstone");
+		
+		// Loom
+		WORKBENCH_TYPE_MAP.put(Material.LOOM, "LOOM");
+		WORKBENCH_DISPLAY_NAMES.put(Material.LOOM, "Loom");
+		
+		// Smithing table
+		WORKBENCH_TYPE_MAP.put(Material.SMITHING_TABLE, "SMITHING");
+		WORKBENCH_DISPLAY_NAMES.put(Material.SMITHING_TABLE, "Smithing Table");
+		
+		// Stonecutter
+		WORKBENCH_TYPE_MAP.put(Material.STONECUTTER, "STONECUTTER");
+		WORKBENCH_DISPLAY_NAMES.put(Material.STONECUTTER, "Stonecutter");
+	}
 
 	@EventHandler(ignoreCancelled = true)
 	public void onPortalCreateEvent(PortalCreateEvent event)
@@ -456,6 +501,237 @@ public class EntityListener implements Listener
 					event.setCancelled(true);
 
 					break;
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Checks if a workbench is blocked by permit-workbenches flag
+	 */
+	private boolean isWorkbenchBlocked(LocalPlayer localPlayer, Material blockMaterial)
+	{
+		// Check if this is a workbench block
+		String workbenchType = WORKBENCH_TYPE_MAP.get(blockMaterial);
+		if (workbenchType == null)
+		{
+			return false;
+		}
+		
+		// Check if flag is set in region (inheritance handled automatically by WorldGuard)
+		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(localPlayer.getLocation());
+		Set<String> flagSet = regions.queryValue(localPlayer, Flags.PERMIT_WORKBENCHES);
+		if (flagSet == null || flagSet.isEmpty())
+		{
+			return false;
+		}
+		
+		// Check for "CLEAR" keyword (removes restrictions)
+		for (String value : flagSet)
+		{
+			if (value != null && value.equalsIgnoreCase("CLEAR"))
+			{
+				return false;
+			}
+		}
+		
+		// Check for specific workbench type FIRST (explicit values always take precedence)
+		// This ensures "ender" in "all,ender" always blocks ender chests regardless of config
+		for (String value : flagSet)
+		{
+			if (value != null && value.equalsIgnoreCase(workbenchType))
+			{
+				return true;
+			}
+		}
+		
+		// Check for "ALL" keyword (only if specific type not found)
+		boolean hasAll = false;
+		boolean allIncludesEnder = Config.isPermitAllIncludesEnderchest();
+		for (String value : flagSet)
+		{
+			if (value != null && value.equalsIgnoreCase("ALL"))
+			{
+				hasAll = true;
+				break;
+			}
+		}
+		
+		if (hasAll)
+		{
+			// If "ALL" is set, block all workbenches except ender chest (unless config says otherwise)
+			if (workbenchType.equals("ENDER"))
+			{
+				return allIncludesEnder;
+			}
+			return true;
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * Gets the display name for a workbench block
+	 */
+	private String getWorkbenchDisplayName(Material blockMaterial)
+	{
+		return WORKBENCH_DISPLAY_NAMES.getOrDefault(blockMaterial, blockMaterial.name());
+	}
+	
+	/**
+	 * Sends blocked workbench message
+	 */
+	private void sendWorkbenchBlocked(Player player, String workbenchName)
+	{
+		Messages.sendMessageWithCooldown(player, "permit-workbenches-blocked", "workbench", workbenchName);
+	}
+	
+	@EventHandler(priority = EventPriority.LOW, ignoreCancelled = false)
+	public void onWorkbenchInteract(PlayerInteractEvent event)
+	{
+		// Only handle right-click on blocks
+		if (event.getAction() != org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK)
+		{
+			return;
+		}
+		
+		org.bukkit.block.Block block = event.getClickedBlock();
+		if (block == null)
+		{
+			return;
+		}
+		
+		Player player = event.getPlayer();
+		LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
+		if (this.sessionManager.hasBypass(localPlayer, localPlayer.getWorld()))
+		{
+			return;
+		}
+		
+		Material blockMaterial = block.getType();
+		if (isWorkbenchBlocked(localPlayer, blockMaterial))
+		{
+			event.setCancelled(true);
+			sendWorkbenchBlocked(player, getWorkbenchDisplayName(blockMaterial));
+		}
+	}
+	
+	@EventHandler(priority = EventPriority.LOW, ignoreCancelled = false)
+	public void onPrepareItemCraft(org.bukkit.event.inventory.PrepareItemCraftEvent event)
+	{
+		// Check if it's a crafting table (not inventory crafting)
+		if (event.getInventory().getType() != org.bukkit.event.inventory.InventoryType.WORKBENCH)
+		{
+			return;
+		}
+		
+		// Get the player from viewers
+		Player player = null;
+		for (org.bukkit.entity.HumanEntity viewer : event.getViewers())
+		{
+			if (viewer instanceof Player)
+			{
+				player = (Player) viewer;
+				break;
+			}
+		}
+		
+		if (player == null)
+		{
+			return;
+		}
+		
+		LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
+		if (this.sessionManager.hasBypass(localPlayer, localPlayer.getWorld()))
+		{
+			return;
+		}
+		
+		// Check if crafting is blocked
+		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(localPlayer.getLocation());
+		Set<String> flagSet = regions.queryValue(localPlayer, Flags.PERMIT_WORKBENCHES);
+		if (flagSet != null && !flagSet.isEmpty())
+		{
+			// Check for "CLEAR"
+			boolean hasClear = false;
+			for (String value : flagSet)
+			{
+				if (value != null && value.equalsIgnoreCase("CLEAR"))
+				{
+					hasClear = true;
+					break;
+				}
+			}
+			
+			if (!hasClear)
+			{
+				// Check for "ALL" or "CRAFT"
+				boolean shouldBlock = false;
+				for (String value : flagSet)
+				{
+					if (value != null && (value.equalsIgnoreCase("ALL") || value.equalsIgnoreCase("CRAFT")))
+					{
+						shouldBlock = true;
+						break;
+					}
+				}
+				
+				if (shouldBlock)
+				{
+					// Set result to air to prevent crafting
+					event.getInventory().setResult(null);
+				}
+			}
+		}
+	}
+	
+	@EventHandler(priority = EventPriority.LOW, ignoreCancelled = false)
+	public void onCraftItem(org.bukkit.event.inventory.CraftItemEvent event)
+	{
+		if (!(event.getWhoClicked() instanceof Player player))
+		{
+			return;
+		}
+		
+		LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
+		if (this.sessionManager.hasBypass(localPlayer, localPlayer.getWorld()))
+		{
+			return;
+		}
+		
+		// Check if crafting is blocked (both crafting table and inventory crafting)
+		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(localPlayer.getLocation());
+		Set<String> flagSet = regions.queryValue(localPlayer, Flags.PERMIT_WORKBENCHES);
+		if (flagSet != null && !flagSet.isEmpty())
+		{
+			// Check for "CLEAR"
+			boolean hasClear = false;
+			for (String value : flagSet)
+			{
+				if (value != null && value.equalsIgnoreCase("CLEAR"))
+				{
+					hasClear = true;
+					break;
+				}
+			}
+			
+			if (!hasClear)
+			{
+				// Check for "ALL" or "CRAFT"
+				boolean shouldBlock = false;
+				for (String value : flagSet)
+				{
+					if (value != null && (value.equalsIgnoreCase("ALL") || value.equalsIgnoreCase("CRAFT")))
+					{
+						shouldBlock = true;
+						break;
+					}
+				}
+				
+				if (shouldBlock)
+				{
+					event.setCancelled(true);
+					sendWorkbenchBlocked(player, "Crafting");
 				}
 			}
 		}

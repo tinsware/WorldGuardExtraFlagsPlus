@@ -1,6 +1,7 @@
 package dev.tins.worldguardextraflagsplus.commands;
 
 import dev.tins.worldguardextraflagsplus.Messages;
+import dev.tins.worldguardextraflagsplus.Config;
 import dev.tins.worldguardextraflagsplus.WorldGuardExtraFlagsPlusPlugin;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -45,16 +46,17 @@ public class ReloadCommand implements CommandExecutor, TabCompleter
 
 		try
 		{
-			// Reload messages
+			// Reload messages and config
 			Messages.reloadMessages();
+			Config.reloadConfig();
 			
-			sender.sendMessage("§aMessages reloaded successfully!");
-			plugin.getLogger().info("Messages reloaded by " + sender.getName());
+			sender.sendMessage("§aMessages and config reloaded successfully!");
+			plugin.getLogger().info("Messages and config reloaded by " + sender.getName());
 		}
 		catch (Exception e)
 		{
-			sender.sendMessage("§cFailed to reload messages: " + e.getMessage());
-			plugin.getLogger().severe("Failed to reload messages: " + e.getMessage());
+			sender.sendMessage("§cFailed to reload messages/config: " + e.getMessage());
+			plugin.getLogger().severe("Failed to reload messages/config: " + e.getMessage());
 			e.printStackTrace();
 		}
 

@@ -94,6 +94,7 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
       flagRegistry.register(Flags.JOIN_LOCATION);
       
       flagRegistry.register(Flags.PERMIT_COMPLETELY);
+      flagRegistry.register(Flags.PERMIT_WORKBENCHES);
       flagRegistry.register(Flags.ENTRY_MIN_LEVEL);
       flagRegistry.register(Flags.ENTRY_MAX_LEVEL);
       flagRegistry.register(Flags.VILLAGER_TRADE);
@@ -126,6 +127,9 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 	{
 		// Initialize messages system first (loads messages.yml from WorldGuard folder)
 		Messages.initialize(this);
+		
+		// Initialize config system (loads config-wgefp.yml from WorldGuard folder)
+		Config.initialize(this);
 		
 		WorldGuardUtils.initializeScheduler(this);
 		
