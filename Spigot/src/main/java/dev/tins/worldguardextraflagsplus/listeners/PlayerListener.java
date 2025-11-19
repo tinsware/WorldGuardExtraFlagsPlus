@@ -20,6 +20,8 @@ import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionEffect;
@@ -38,6 +40,7 @@ import dev.tins.worldguardextraflagsplus.wg.handlers.GiveEffectsFlagHandler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @RequiredArgsConstructor
 public class PlayerListener implements Listener
@@ -287,6 +290,60 @@ public class PlayerListener implements Listener
 			WorldGuardUtils.getScheduler().runAtEntity(player, (wrappedTask) -> player.setAllowFlight(value));
 		}
 	}
+
+	@EventHandler(priority = EventPriority.LOW, ignoreCancelled = false)
+	public void onPlayerDropItem(PlayerDropItemEvent event)
+	{
+		Player player = event.getPlayer();
+		LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
+		
+		if (this.sessionManager.hasBypass(localPlayer, localPlayer.getWorld()))
+		{
+			return;
+		}
+		
+		Material itemType = event.getItemDrop().getItemStack().getType();
+		Location location = BukkitAdapter.adapt(player.getLocation());
+		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(location);
+		
+		// Check our deny-item-drops flag (denies specific items even if WorldGuard allows drops)
+		Set<Material> denySet = regions.queryValue(localPlayer, Flags.DENY_ITEM_DROPS);
+		if (denySet != null && !denySet.isEmpty() && denySet.contains(itemType))
+		{
+			// Item is in deny list, deny it
+			event.setCancelled(true);
+		}
+	}
+
+	@EventHandler(priority = EventPriority.LOW, ignoreCancelled = false)
+	public void onEntityPickupItem(EntityPickupItemEvent event)
+	{
+		if (!(event.getEntity() instanceof Player player))
+		{
+			return;
+		}
+		
+		LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
+		
+		if (this.sessionManager.hasBypass(localPlayer, localPlayer.getWorld()))
+		{
+			return;
+		}
+		
+		Material itemType = event.getItem().getItemStack().getType();
+		// Check item location for deny-item-pickup flag
+		Location itemLocation = BukkitAdapter.adapt(event.getItem().getLocation());
+		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(itemLocation);
+		
+		// Check our deny-item-pickup flag (denies specific items even if WorldGuard allows pickups)
+		Set<Material> denySet = regions.queryValue(localPlayer, Flags.DENY_ITEM_PICKUP);
+		if (denySet != null && !denySet.isEmpty() && denySet.contains(itemType))
+		{
+			// Item is in deny list, deny it
+			event.setCancelled(true);
+		}
+	}
+	
 }
 
 

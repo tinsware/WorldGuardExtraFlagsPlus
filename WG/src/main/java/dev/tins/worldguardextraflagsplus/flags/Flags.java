@@ -60,6 +60,9 @@ public final class Flags
 	public final static SetFlag<Material> ALLOW_BLOCK_BREAK = new SetFlag<Material>("allow-block-break", new BlockMaterialFlag(null));
 	public final static SetFlag<Material> DENY_BLOCK_BREAK = new SetFlag<Material>("deny-block-break", new BlockMaterialFlag(null));
 
+	public final static SetFlag<Material> DENY_ITEM_DROPS = new SetFlag<Material>("deny-item-drops", new MaterialFlag(null));
+	public final static SetFlag<Material> DENY_ITEM_PICKUP = new SetFlag<Material>("deny-item-pickup", new MaterialFlag(null));
+
 	public final static ForcedStateFlag GLIDE = new ForcedStateFlag("glide");
 	
 	public final static StateFlag CHUNK_UNLOAD = new StateFlag("chunk-unload", true);
