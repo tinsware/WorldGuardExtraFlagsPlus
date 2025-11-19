@@ -5,7 +5,7 @@ description: |
   Documentation: -- tins --
   Original author Website: https://joniaromaa.fi
 main: dev.tins.worldguardextraflagsplus.WorldGuardExtraFlagsPlusPlugin
-version: 4.3.6
+version: 4.3.7
 api-version: 1.20
 folia-supported: true
 depend: [ WorldGuard ]
@@ -19,5 +19,5 @@ commands:
     aliases: [wgefplus, worldguardextraflagsplus]
     permission: worldguardextraflagsplus.reload
     usage: |
-      /<command> reload - Reload messages from messages.yml
+      /<command> reload - Reload messages from messages-wgefp.yml
 

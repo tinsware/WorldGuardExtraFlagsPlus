@@ -13,12 +13,14 @@ An advanced WorldGuard extension that adds over 30+ extra region flags for full 
 - ✅ **Folia support** – fully compatible with async region handling
 - 🛡️ **New flag:** `permit-completely` – blocks all usage of specified items *(MACE, FIREWORK_ROCKET, WIND_CHARGE, TOTEM_OF_UNDYING, TRIDENT)*
 - 🎚️ **New flags:** `entry-min-level` / `entry-max-level` – restrict entry by **XP level** or **PlaceholderAPI values**
-- 💬 **Customizable messages** via `messages.yml` (disable, recolor, or use placeholders)
+- 💬 **Customizable messages** via `messages-wgefp.yml` (disable, recolor, or use placeholders)
 - 🔁 **Message cooldown system** to prevent spam (default 3 seconds)
 - 🏪 **New flag:** `villager-trade` – control villager trading in regions
 - 🚫 **New flag:** `disable-collision` – disable player collision in regions
 - 📝 **PlaceholderAPI Chat Integration** – chat prefix/suffix supports PlaceholderAPI placeholders
 - 🧱 **New flags:** `allow-block-place` / `deny-block-place` / `allow-block-break` / `deny-block-break` – fine-grained block placement and breaking control
+- 📦 **New flags:** `deny-item-drops` / `deny-item-pickup` – restrict specific items from being dropped or picked up (works when WorldGuard allows drops/pickups)
+- 🔨 **New flag:** `permit-workbenches` – block workbench usage (anvil, crafting table, ender chest, etc.) and crafting in regions
 
 ---
 
@@ -47,6 +49,8 @@ chunk-unload / item-durability / join-location
 permit-completely / entry-min-level / entry-max-level
 villager-trade / disable-collision
 allow-block-place / deny-block-place / allow-block-break / deny-block-break
+deny-item-drops / deny-item-pickup
+permit-workbenches
 ```
 
 **New in Plus:**
@@ -58,6 +62,8 @@ entry-max-level
 villager-trade
 disable-collision
 allow-block-place / deny-block-place / allow-block-break / deny-block-break
+deny-item-drops / deny-item-pickup
+permit-workbenches
 ```
 
 ---
@@ -87,6 +93,14 @@ Example:
 /rg flag spawn allow-block-break STONE,COBBLESTONE
 /rg flag spawn deny-block-break BEDROCK,SPAWNER
 
+/rg flag spawn deny-item-drops diamond,emerald,netherite_ingot
+/rg flag spawn deny-item-pickup apple,redstone,iron_ingot
+
+/rg flag spawn permit-workbenches ALL
+/rg flag spawn permit-workbenches ALL,ender
+/rg flag spawn permit-workbenches craft,anvil,ender
+/rg flag spawn permit-workbenches clear
+
 /rg flag spawn chat-prefix "&7[%vault_rank%] "
 /rg flag spawn chat-suffix " &7[%player_level%]"
 ```
@@ -98,17 +112,17 @@ Example:
 
 | Minecraft       | WorldGuard | ExtraFlagsPlus | Support   |
 | --------------- | ---------- | -------------- | --------- |
-| 1.20 – 1.21.10 | 7.0.13+    | 4.3.6+         | ✅ Active |
+| 1.20 – 1.21.10 | 7.0.13+    | 4.3.7+         | ✅ Active |
 | 1.7 – 1.19     | Older      | ❌ No support  |           |
 
 ---
 
 ## Message Customization
 
-All plugin messages live in `plugins/WorldGuard/messages.yml`.
+All plugin messages live in `plugins/WorldGuard/messages-wgefp.yml`.
 
 - Edit freely to match your style
-- Use `{required}`, `{current}`, `{item}` placeholders
+- Use `{required}`, `{current}`, `{item}`, `{workbench}` placeholders
 - Color codes supported (`&c`, `&7`, etc.)
 - Disable messages with `""`
 - Reload instantly using `/wgefp reload` or `/wg reload`

@@ -1,4 +1,4 @@
-Total: 36 flags
+Total: 37 flags
 
 ## Old Flags (25)
 
@@ -28,7 +28,7 @@ chunk-unload
 item-durability
 join-location
 
-## New Flags (11)
+## New Flags (12)
 
 allow-block-place
 deny-block-place
@@ -41,3 +41,4 @@ entry-min-level *
 entry-max-level *
 deny-item-pickup *
 deny-item-drops *
+permit-workbenches *
