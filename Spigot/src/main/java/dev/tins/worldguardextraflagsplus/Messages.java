@@ -10,6 +10,8 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
@@ -117,14 +119,164 @@ public class Messages
 	{
 		try
 		{
-			messages = YamlConfiguration.loadConfiguration(messagesFile);
+			// Load file without defaults first to check actual file content
+			YamlConfiguration fileConfig = YamlConfiguration.loadConfiguration(messagesFile);
 			
 			// Load UTF-8 encoding properly
 			InputStream defaultStream = plugin.getResource("messages-wgefp.yml");
+			YamlConfiguration defaultConfig = null;
 			if (defaultStream != null)
 			{
 				InputStreamReader reader = new InputStreamReader(defaultStream, StandardCharsets.UTF_8);
-				YamlConfiguration defaultConfig = YamlConfiguration.loadConfiguration(reader);
+				defaultConfig = YamlConfiguration.loadConfiguration(reader);
+			}
+			
+			boolean needsSave = false;
+			String fileContent = null;
+			
+			// Migrate permit-completely-blocked to disable-completely-blocked
+			// Check actual file content, not defaults
+			if (fileConfig.contains("permit-completely-blocked", false) && !fileConfig.contains("disable-completely-blocked", false))
+			{
+				// Read file as text to preserve exact formatting
+				fileContent = new String(Files.readAllBytes(messagesFile.toPath()), StandardCharsets.UTF_8);
+				String originalContent = fileContent;
+				
+				// Replace permit-completely-blocked with disable-completely-blocked (preserve formatting)
+				fileContent = fileContent.replaceAll("(?m)^(\\s*)#?\\s*permit-completely-blocked\\s*:", "$1disable-completely-blocked:");
+				fileContent = fileContent.replaceAll("(?m)^(\\s*)permit-completely-blocked\\s*:", "$1disable-completely-blocked:");
+				
+				// Also update comment if it exists
+				fileContent = fileContent.replaceAll("(?m)^(\\s*)#\\s*Permit completely flag message", "$1# Disable completely flag message");
+				
+				if (!fileContent.equals(originalContent))
+				{
+					needsSave = true;
+					plugin.getLogger().info("Migrated 'permit-completely-blocked' to 'disable-completely-blocked' in messages-wgefp.yml");
+				}
+			}
+			
+			// Add deny-inventory-craft-blocked if missing (check actual file, not defaults)
+			if (!fileConfig.contains("deny-inventory-craft-blocked", false))
+			{
+				// Read file as text if not already read
+				if (fileContent == null)
+				{
+					fileContent = new String(Files.readAllBytes(messagesFile.toPath()), StandardCharsets.UTF_8);
+				}
+				String originalContent = fileContent;
+				
+				String defaultValue = defaultConfig != null ? defaultConfig.getString("deny-inventory-craft-blocked") : "&cHey! &7You can not craft items in your inventory here!";
+				if (defaultValue != null)
+				{
+					// Detect quote style from existing messages (prefer double quotes, fallback to single)
+					String quoteChar = "\"";
+					if (fileContent.contains("permit-workbenches-blocked:") || fileContent.contains("disable-completely-blocked:"))
+					{
+						// Check what quote style is used
+						String sampleLine = fileContent.contains("permit-workbenches-blocked:") 
+							? fileContent.substring(fileContent.indexOf("permit-workbenches-blocked:"))
+							: fileContent.substring(fileContent.indexOf("disable-completely-blocked:"));
+						int firstQuote = sampleLine.indexOf('\'');
+						int firstDoubleQuote = sampleLine.indexOf('"');
+						if (firstQuote != -1 && (firstDoubleQuote == -1 || firstQuote < firstDoubleQuote))
+						{
+							quoteChar = "'";
+						}
+					}
+					
+					// Find the last message entry and add the new one after it
+					// Look for the last message line (permit-workbenches-blocked or disable-completely-blocked)
+					if (fileContent.contains("permit-workbenches-blocked:") || fileContent.contains("disable-completely-blocked:"))
+					{
+						// Add after the last message entry
+						String newEntry = "\n# Deny inventory craft flag message\ndeny-inventory-craft-blocked: " + quoteChar + defaultValue + quoteChar;
+						
+						// Find the last occurrence of a message entry and add after it
+						int lastIndex = Math.max(
+							fileContent.lastIndexOf("permit-workbenches-blocked:"),
+							fileContent.lastIndexOf("disable-completely-blocked:")
+						);
+						
+						if (lastIndex != -1)
+						{
+							// Find the end of that line (handle wrapped lines by finding the next non-indented line or end of file)
+							int lineEnd = fileContent.indexOf('\n', lastIndex);
+							if (lineEnd == -1)
+							{
+								lineEnd = fileContent.length();
+							}
+							else
+							{
+								lineEnd++; // Include the newline
+								// Skip any wrapped continuation lines (lines that start with spaces after the value)
+								while (lineEnd < fileContent.length())
+								{
+									int nextLineStart = lineEnd;
+									// Skip whitespace
+									while (nextLineStart < fileContent.length() && (fileContent.charAt(nextLineStart) == ' ' || fileContent.charAt(nextLineStart) == '\t'))
+									{
+										nextLineStart++;
+									}
+									// If next line starts with a quote or is empty/comment, it's a continuation
+									if (nextLineStart < fileContent.length() && 
+										(fileContent.charAt(nextLineStart) == '"' || 
+										 fileContent.charAt(nextLineStart) == '\'' ||
+										 fileContent.charAt(nextLineStart) == '#' ||
+										 fileContent.charAt(nextLineStart) == '\n' ||
+										 fileContent.charAt(nextLineStart) == '\r'))
+									{
+										// This is a continuation line, skip it
+										int nextNewline = fileContent.indexOf('\n', nextLineStart);
+										if (nextNewline == -1)
+										{
+											lineEnd = fileContent.length();
+											break;
+										}
+										lineEnd = nextNewline + 1;
+									}
+									else
+									{
+										// This is a new key, stop here
+										break;
+									}
+								}
+							}
+							
+							// Insert the new entry
+							fileContent = fileContent.substring(0, lineEnd) + newEntry + fileContent.substring(lineEnd);
+						}
+						else
+						{
+							// Fallback: append at the end
+							fileContent = fileContent + newEntry;
+						}
+					}
+					else
+					{
+						// Fallback: append at the end
+						fileContent = fileContent + "\n# Deny inventory craft flag message\ndeny-inventory-craft-blocked: " + quoteChar + defaultValue + quoteChar;
+					}
+					
+					if (!fileContent.equals(originalContent))
+					{
+						needsSave = true;
+						plugin.getLogger().info("Added missing 'deny-inventory-craft-blocked' key to messages-wgefp.yml");
+					}
+				}
+			}
+			
+			// Save if changes were made (using text-based save to preserve formatting)
+			if (needsSave && fileContent != null)
+			{
+				Files.write(messagesFile.toPath(), fileContent.getBytes(StandardCharsets.UTF_8), StandardOpenOption.TRUNCATE_EXISTING);
+				plugin.getLogger().info("Updated messages-wgefp.yml with new keys");
+			}
+			
+			// Now load with defaults for actual use
+			messages = YamlConfiguration.loadConfiguration(messagesFile);
+			if (defaultConfig != null)
+			{
 				messages.setDefaults(defaultConfig);
 			}
 			

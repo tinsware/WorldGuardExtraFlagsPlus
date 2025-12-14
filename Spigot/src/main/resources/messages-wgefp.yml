@@ -34,3 +34,6 @@ disable-completely-blocked: "&cHey! &7You can not use {item} in here!"
 # Permit workbenches flag message
 permit-workbenches-blocked: "&cHey! &7You can not use {workbench} in here!"
 
+# Deny inventory craft flag message
+deny-inventory-craft-blocked: "&cHey! &7You can not craft items in your inventory here!"
+

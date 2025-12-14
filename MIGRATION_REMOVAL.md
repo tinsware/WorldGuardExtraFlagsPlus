@@ -14,6 +14,19 @@ Quick reference for removing `permit-completely` migration code in a future vers
 - Deprecation warning logging (lines ~143-156)
 - Fallback to `permit-completely-blocked` message in `sendBlocked()` method (line ~181)
 
+**Messages.java**
+- Old `messages.yml` deletion logic in `initialize()` method (lines ~35-59)
+  - Check for old `messages.yml` file
+  - Delete if it contains `permit-completely-blocked` key
+- Message key migration in `reloadMessages()` method (lines ~137-157)
+  - Migration of `permit-completely-blocked` to `disable-completely-blocked`
+  - Text-based replacement to preserve formatting
+  - Comment update from "Permit completely" to "Disable completely"
+- `deny-inventory-craft-blocked` auto-add logic in `reloadMessages()` method (lines ~159-264)
+  - Check if key is missing
+  - Add with default value if missing
+  - Quote style detection and text-based insertion
+
 **Documentation**
 - Remove `permit-completely` mentions from README.md and .media files
 - Remove deprecation notes about `permit-completely` flag

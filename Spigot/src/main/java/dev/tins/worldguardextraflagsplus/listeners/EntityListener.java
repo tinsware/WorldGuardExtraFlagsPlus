@@ -609,6 +609,14 @@ public class EntityListener implements Listener
 	}
 	
 	/**
+	 * Sends blocked inventory crafting message
+	 */
+	private void sendInventoryCraftBlocked(Player player)
+	{
+		Messages.sendMessageWithCooldown(player, "deny-inventory-craft-blocked");
+	}
+	
+	/**
 	 * Sends blocked workbench message
 	 */
 	private void sendWorkbenchBlocked(Player player, String workbenchName)
@@ -649,7 +657,43 @@ public class EntityListener implements Listener
 	@EventHandler(priority = EventPriority.LOW, ignoreCancelled = false)
 	public void onPrepareItemCraft(org.bukkit.event.inventory.PrepareItemCraftEvent event)
 	{
-		// Check if it's a crafting table (not inventory crafting)
+		// Handle inventory crafting (2x2 grid) - NEW FLAG
+		if (event.getInventory().getType() == org.bukkit.event.inventory.InventoryType.CRAFTING)
+		{
+			// Get the player from viewers
+			Player player = null;
+			for (org.bukkit.entity.HumanEntity viewer : event.getViewers())
+			{
+				if (viewer instanceof Player)
+				{
+					player = (Player) viewer;
+					break;
+				}
+			}
+			
+			if (player == null)
+			{
+				return;
+			}
+			
+			LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
+			if (this.sessionManager.hasBypass(localPlayer, localPlayer.getWorld()))
+			{
+				return;
+			}
+			
+			// Check deny-inventory-craft flag
+			ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(localPlayer.getLocation());
+			com.sk89q.worldguard.protection.flags.StateFlag.State state = regions.queryState(localPlayer, Flags.DENY_INVENTORY_CRAFT);
+			if (state == com.sk89q.worldguard.protection.flags.StateFlag.State.DENY)
+			{
+				// Set result to air to prevent crafting
+				event.getInventory().setResult(null);
+			}
+			return;
+		}
+		
+		// Handle crafting table (3x3 grid) - permit-workbenches CRAFT (BREAKING CHANGE: now only blocks crafting table)
 		if (event.getInventory().getType() != org.bukkit.event.inventory.InventoryType.WORKBENCH)
 		{
 			return;
@@ -677,7 +721,7 @@ public class EntityListener implements Listener
 			return;
 		}
 		
-		// Check if crafting is blocked
+		// Check if crafting is blocked (crafting table only)
 		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(localPlayer.getLocation());
 		Set<String> flagSet = regions.queryValue(localPlayer, Flags.PERMIT_WORKBENCHES);
 		if (flagSet != null && !flagSet.isEmpty())
@@ -729,39 +773,55 @@ public class EntityListener implements Listener
 			return;
 		}
 		
-		// Check if crafting is blocked (both crafting table and inventory crafting)
 		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(localPlayer.getLocation());
-		Set<String> flagSet = regions.queryValue(localPlayer, Flags.PERMIT_WORKBENCHES);
-		if (flagSet != null && !flagSet.isEmpty())
+		
+		// Check inventory crafting (2x2 grid) - NEW FLAG
+		if (event.getInventory().getType() == org.bukkit.event.inventory.InventoryType.CRAFTING)
 		{
-			// Check for "CLEAR"
-			boolean hasClear = false;
-			for (String value : flagSet)
+			com.sk89q.worldguard.protection.flags.StateFlag.State state = regions.queryState(localPlayer, Flags.DENY_INVENTORY_CRAFT);
+			if (state == com.sk89q.worldguard.protection.flags.StateFlag.State.DENY)
 			{
-				if (value != null && value.equalsIgnoreCase("CLEAR"))
-				{
-					hasClear = true;
-					break;
-				}
+				event.setCancelled(true);
+				sendInventoryCraftBlocked(player);
+				return;
 			}
-			
-			if (!hasClear)
+		}
+		
+		// Check crafting table (3x3 grid) - permit-workbenches CRAFT (BREAKING CHANGE: now only blocks crafting table, not inventory)
+		if (event.getInventory().getType() == org.bukkit.event.inventory.InventoryType.WORKBENCH)
+		{
+			Set<String> flagSet = regions.queryValue(localPlayer, Flags.PERMIT_WORKBENCHES);
+			if (flagSet != null && !flagSet.isEmpty())
 			{
-				// Check for "ALL" or "CRAFT"
-				boolean shouldBlock = false;
+				// Check for "CLEAR"
+				boolean hasClear = false;
 				for (String value : flagSet)
 				{
-					if (value != null && (value.equalsIgnoreCase("ALL") || value.equalsIgnoreCase("CRAFT")))
+					if (value != null && value.equalsIgnoreCase("CLEAR"))
 					{
-						shouldBlock = true;
+						hasClear = true;
 						break;
 					}
 				}
 				
-				if (shouldBlock)
+				if (!hasClear)
 				{
-					event.setCancelled(true);
-					sendWorkbenchBlocked(player, "Crafting");
+					// Check for "ALL" or "CRAFT"
+					boolean shouldBlock = false;
+					for (String value : flagSet)
+					{
+						if (value != null && (value.equalsIgnoreCase("ALL") || value.equalsIgnoreCase("CRAFT")))
+						{
+							shouldBlock = true;
+							break;
+						}
+					}
+					
+					if (shouldBlock)
+					{
+						event.setCancelled(true);
+						sendWorkbenchBlocked(player, "Crafting");
+					}
 				}
 			}
 		}
