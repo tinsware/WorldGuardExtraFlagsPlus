@@ -270,10 +270,29 @@ public class PlayerListener implements Listener
 	{
 		Player player = event.getPlayer();
 		
-		Boolean value = this.sessionManager.get(this.worldGuardPlugin.wrapPlayer(player)).getHandler(FlyFlagHandler.class).getCurrentValue();
-		if (value != null)
+		Boolean flyValue = this.sessionManager.get(this.worldGuardPlugin.wrapPlayer(player)).getHandler(FlyFlagHandler.class).getCurrentValue();
+		if (flyValue != null)
 		{
-			WorldGuardUtils.getScheduler().runAtEntity(player, (wrappedTask) -> player.setAllowFlight(value));
+			WorldGuardUtils.getScheduler().runAtEntity(player, (wrappedTask) -> player.setAllowFlight(flyValue));
+		}
+		
+		// Check collision flag for players already in regions on join
+		// Query the region directly to ensure collision is applied even if handler hasn't triggered yet
+		LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
+		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(localPlayer.getLocation());
+		Boolean collisionValue = regions.queryValue(localPlayer, Flags.DISABLE_COLLISION);
+		if (collisionValue != null && collisionValue)
+		{
+			// Manually apply collision using the handler's method
+			// Note: Handler uses entity scheduler internally for scoreboard operations
+			WorldGuardUtils.getScheduler().runNextTick((wrappedTask) -> {
+				dev.tins.worldguardextraflagsplus.wg.handlers.CollisionFlagHandler handler = 
+					this.sessionManager.get(localPlayer).getHandler(dev.tins.worldguardextraflagsplus.wg.handlers.CollisionFlagHandler.class);
+				if (handler != null)
+				{
+					handler.applyCollisionSetting(player, collisionValue);
+				}
+			});
 		}
 	}
 
@@ -284,10 +303,27 @@ public class PlayerListener implements Listener
 
 		//Some plugins toggle flight off on world change based on permissions,
 		//so we need to make sure to force the flight status.
-		Boolean value = this.sessionManager.get(this.worldGuardPlugin.wrapPlayer(player)).getHandler(FlyFlagHandler.class).getCurrentValue();
-		if (value != null)
+		Boolean flyValue = this.sessionManager.get(this.worldGuardPlugin.wrapPlayer(player)).getHandler(FlyFlagHandler.class).getCurrentValue();
+		if (flyValue != null)
 		{
-			WorldGuardUtils.getScheduler().runAtEntity(player, (wrappedTask) -> player.setAllowFlight(value));
+			WorldGuardUtils.getScheduler().runAtEntity(player, (wrappedTask) -> player.setAllowFlight(flyValue));
+		}
+		
+		// Check collision flag on world change
+		LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
+		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(localPlayer.getLocation());
+		Boolean collisionValue = regions.queryValue(localPlayer, Flags.DISABLE_COLLISION);
+		if (collisionValue != null && collisionValue)
+		{
+			// Note: Handler uses entity scheduler internally for scoreboard operations
+			WorldGuardUtils.getScheduler().runNextTick((wrappedTask) -> {
+				dev.tins.worldguardextraflagsplus.wg.handlers.CollisionFlagHandler handler = 
+					this.sessionManager.get(localPlayer).getHandler(dev.tins.worldguardextraflagsplus.wg.handlers.CollisionFlagHandler.class);
+				if (handler != null)
+				{
+					handler.applyCollisionSetting(player, collisionValue);
+				}
+			});
 		}
 	}
 

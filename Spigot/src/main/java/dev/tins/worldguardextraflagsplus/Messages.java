@@ -32,6 +32,32 @@ public class Messages
 		// Create messages-wgefp.yml in WorldGuard folder
 		messagesFile = new File(worldGuardDataFolder, "messages-wgefp.yml");
 		
+		// Handle old messages.yml file migration/deletion
+		File oldMessagesFile = new File(worldGuardDataFolder, "messages.yml");
+		if (oldMessagesFile.exists())
+		{
+			try
+			{
+				FileConfiguration oldConfig = YamlConfiguration.loadConfiguration(oldMessagesFile);
+				if (oldConfig.contains("permit-completely-blocked"))
+				{
+					// Old file contains the deprecated message key, delete it
+					if (oldMessagesFile.delete())
+					{
+						plugin.getLogger().info("Deleted old messages.yml file (migrated to messages-wgefp.yml)");
+					}
+					else
+					{
+						plugin.getLogger().warning("Failed to delete old messages.yml file. Please delete it manually.");
+					}
+				}
+			}
+			catch (Exception e)
+			{
+				plugin.getLogger().log(Level.WARNING, "Error checking old messages.yml file: " + e.getMessage(), e);
+			}
+		}
+		
 		// Copy default messages-wgefp.yml if it doesn't exist
 		if (!messagesFile.exists())
 		{

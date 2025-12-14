@@ -9,7 +9,7 @@ import java.util.Set;
 
 public class BlockableItemFlag extends Flag<String>
 {
-	// Hardcoded list of items that can be blocked by permit-completely flag
+	// Hardcoded list of items that can be blocked by disable-completely flag (or deprecated permit-completely flag)
 	// TODO: Add more items in future updates
 	private static final Set<String> BLOCKABLE_ITEMS = new HashSet<>();
 	static

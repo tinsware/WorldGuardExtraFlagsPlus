@@ -8,7 +8,7 @@
 # silence certain messages while keeping others active.
 #
 # Example:
-#   permit-completely-blocked: ""  # This will disable the blocked item message
+#   disable-completely-blocked: ""  # This will disable the blocked item message
 #
 # Messages are cached on plugin load for better performance.
 # Use /wg reload or /wgefp reload (or /wgefplus reload or /worldguardextraflagsplus reload) to reload messages without restarting the server.
@@ -28,8 +28,8 @@ send-message-cooldown: 3
 entry-min-level-denied: "&cYour level (&7{current}&c) is low to enter this area. &7Min: &8{required}"
 entry-max-level-denied: "&cYour level (&7{current}&c) is so high to enter this area. &7Max: &8{required}"
 
-# Permit completely flag message
-permit-completely-blocked: "&cHey! &7You can not use {item} in here!"
+# Disable completely flag message
+disable-completely-blocked: "&cHey! &7You can not use {item} in here!"
 
 # Permit workbenches flag message
 permit-workbenches-blocked: "&cHey! &7You can not use {workbench} in here!"

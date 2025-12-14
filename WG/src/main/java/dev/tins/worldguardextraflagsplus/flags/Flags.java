@@ -75,8 +75,14 @@ public final class Flags
 	
 	public final static BooleanFlag DISABLE_COLLISION = new BooleanFlag("disable-collision");
 
+	/**
+	 * @deprecated Use {@link #DISABLE_COMPLETELY} instead. This flag will be removed in a future version.
+	 */
+	@Deprecated
 	public final static SetFlag<String> PERMIT_COMPLETELY = new CustomSetFlag("permit-completely", new BlockableItemFlag(null));
 
+	public final static SetFlag<String> DISABLE_COMPLETELY = new CustomSetFlag("disable-completely", new BlockableItemFlag(null));
+	
 	public final static SetFlag<String> PERMIT_WORKBENCHES = new CustomSetFlag("permit-workbenches", new PermitWorkbenchesFlag(null));
 
 	public final static Flag<String> ENTRY_MIN_LEVEL = new PlaceholderLevelFlag("entry-min-level");
