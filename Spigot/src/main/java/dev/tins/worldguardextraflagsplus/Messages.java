@@ -156,8 +156,8 @@ public class Messages
 				}
 			}
 			
-			// Add deny-inventory-craft-blocked if missing (check actual file, not defaults)
-			if (!fileConfig.contains("deny-inventory-craft-blocked", false))
+			// Add inventory-craft-blocked if missing (check actual file, not defaults)
+			if (!fileConfig.contains("inventory-craft-blocked", false))
 			{
 				// Read file as text if not already read
 				if (fileContent == null)
@@ -166,7 +166,7 @@ public class Messages
 				}
 				String originalContent = fileContent;
 				
-				String defaultValue = defaultConfig != null ? defaultConfig.getString("deny-inventory-craft-blocked") : "&cHey! &7You can not craft items in your inventory here!";
+				String defaultValue = defaultConfig != null ? defaultConfig.getString("inventory-craft-blocked") : "&cHey! &7You can not craft items in your inventory here!";
 				if (defaultValue != null)
 				{
 					// Detect quote style from existing messages (prefer double quotes, fallback to single)
@@ -190,7 +190,7 @@ public class Messages
 					if (fileContent.contains("permit-workbenches-blocked:") || fileContent.contains("disable-completely-blocked:"))
 					{
 						// Add after the last message entry
-						String newEntry = "\n# Deny inventory craft flag message\ndeny-inventory-craft-blocked: " + quoteChar + defaultValue + quoteChar;
+						String newEntry = "\n# Inventory craft flag message\ninventory-craft-blocked: " + quoteChar + defaultValue + quoteChar;
 						
 						// Find the last occurrence of a message entry and add after it
 						int lastIndex = Math.max(
@@ -255,13 +255,13 @@ public class Messages
 					else
 					{
 						// Fallback: append at the end
-						fileContent = fileContent + "\n# Deny inventory craft flag message\ndeny-inventory-craft-blocked: " + quoteChar + defaultValue + quoteChar;
+						fileContent = fileContent + "\n# Inventory craft flag message\ninventory-craft-blocked: " + quoteChar + defaultValue + quoteChar;
 					}
 					
 					if (!fileContent.equals(originalContent))
 					{
 						needsSave = true;
-						plugin.getLogger().info("Added missing 'deny-inventory-craft-blocked' key to messages-wgefp.yml");
+						plugin.getLogger().info("Added missing 'inventory-craft-blocked' key to messages-wgefp.yml");
 					}
 				}
 			}

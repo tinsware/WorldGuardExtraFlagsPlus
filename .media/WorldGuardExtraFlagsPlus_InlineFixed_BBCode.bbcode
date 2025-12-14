@@ -19,7 +19,9 @@ An advanced WorldGuard extension that adds over 30+ extra region flags for full 
 [*]📝 [B]PlaceholderAPI Chat Integration[/B] – chat prefix/suffix supports PlaceholderAPI placeholders
 [*]🧱 [B]New flags:[/B] [I]allow-block-place[/I] / [I]deny-block-place[/I] / [I]allow-block-break[/I] / [I]deny-block-break[/I] – fine-grained block placement and breaking control
 [*]📦 [B]New flags:[/B] [I]deny-item-drops[/I] / [I]deny-item-pickup[/I] – restrict specific items from being dropped or picked up (works when WorldGuard allows drops/pickups)
-[*]🔨 [B]New flag:[/B] [I]permit-workbenches[/I] – block workbench usage (anvil, crafting table, ender chest, etc.) and crafting in regions
+[*]🔨 [B]New flag:[/B] [I]permit-workbenches[/I] – block workbench usage (anvil, crafting table, ender chest, etc.) and crafting table crafting in regions
+  [*][I]Note: permit-workbenches CRAFT now only blocks crafting table (3x3) crafting, not inventory (2x2) crafting. Use inventory-craft flag to block inventory crafting.[/I]
+[*]🎨 [B]New flag:[/B] [I]inventory-craft[/I] – block inventory crafting (2x2 grid) in regions
 [/LIST]
 
 
@@ -48,6 +50,7 @@ villager-trade / disable-collision
 allow-block-place / deny-block-place / allow-block-break / deny-block-break
 deny-item-drops / deny-item-pickup
 permit-workbenches
+inventory-craft
 [/CODE]
 
 [B]New in Plus:[/B]
@@ -60,6 +63,7 @@ disable-collision
 allow-block-place / deny-block-place / allow-block-break / deny-block-break
 deny-item-drops / deny-item-pickup
 permit-workbenches
+inventory-craft
 [/CODE]
 
 
@@ -90,6 +94,8 @@ Use the WorldGuard region flag commands as usual — all ExtraFlagsPlus flags in
 /rg flag spawn permit-workbenches ALL,ender
 /rg flag spawn permit-workbenches craft,anvil,ender
 /rg flag spawn permit-workbenches clear
+
+/rg flag spawn inventory-craft deny
 
 /rg flag spawn chat-prefix "&7[%vault_rank%] "
 /rg flag spawn chat-suffix " &7[%player_level%]"

@@ -103,7 +103,7 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
       flagRegistry.register(Flags.ENTRY_MIN_LEVEL);
       flagRegistry.register(Flags.ENTRY_MAX_LEVEL);
       flagRegistry.register(Flags.VILLAGER_TRADE);
-      flagRegistry.register(Flags.DENY_INVENTORY_CRAFT);
+      flagRegistry.register(Flags.INVENTORY_CRAFT);
       flagRegistry.register(Flags.DISABLE_COLLISION);
 		}
 		catch (Exception e)

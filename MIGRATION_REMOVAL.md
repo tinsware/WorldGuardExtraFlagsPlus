@@ -24,7 +24,7 @@ Quick reference for removing `permit-completely` migration code in a future vers
   - Migration of `permit-completely-blocked` to `disable-completely-blocked`
   - Text-based replacement to preserve formatting
   - Comment update from "Permit completely" to "Disable completely"
-- `deny-inventory-craft-blocked` auto-add logic in `reloadMessages()` method (lines ~159-264)
+- `inventory-craft-blocked` auto-add logic in `reloadMessages()` method (lines ~159-264)
   - Check if key is missing
   - Add with default value if missing
   - Quote style detection and text-based insertion

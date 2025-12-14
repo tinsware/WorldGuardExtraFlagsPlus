@@ -16,8 +16,8 @@ A Bukkit plugin extension that provides extra flags for [WorldGuard](https://git
 - New Flags **"allow-block-place"**, **"deny-block-place"**, **"allow-block-break"**, **"deny-block-break"** | Fine-grained block placement and breaking control ✅
 - New Flags **"deny-item-drops"**, **"deny-item-pickup"** | Restrict specific items from being dropped or picked up (works when WorldGuard allows drops/pickups) ✅
 - New Flag **"permit-workbenches"** | Block workbench usage (anvil, crafting table, ender chest, etc.) and crafting table crafting in regions ✅
-  - *Note: `permit-workbenches CRAFT` now only blocks crafting table (3x3) crafting, not inventory (2x2) crafting. Use `deny-inventory-craft` flag to block inventory crafting.*
-- New Flag **"deny-inventory-craft"** | Block inventory crafting (2x2 grid) in regions ✅
+  - *Note: `permit-workbenches CRAFT` now only blocks crafting table (3x3) crafting, not inventory (2x2) crafting. Use `inventory-craft` flag to block inventory crafting.*
+- New Flag **"inventory-craft"** | Block inventory crafting (2x2 grid) in regions ✅
 
 ## About
 

@@ -21,7 +21,9 @@ An advanced WorldGuard extension that adds over 30+ extra region flags for full 
 - 📝 **PlaceholderAPI Chat Integration** – chat prefix/suffix supports PlaceholderAPI placeholders
 - 🧱 **New flags:** `allow-block-place` / `deny-block-place` / `allow-block-break` / `deny-block-break` – fine-grained block placement and breaking control
 - 📦 **New flags:** `deny-item-drops` / `deny-item-pickup` – restrict specific items from being dropped or picked up (works when WorldGuard allows drops/pickups)
-- 🔨 **New flag:** `permit-workbenches` – block workbench usage (anvil, crafting table, ender chest, etc.) and crafting in regions
+- 🔨 **New flag:** `permit-workbenches` – block workbench usage (anvil, crafting table, ender chest, etc.) and crafting table crafting in regions
+  - *Note: `permit-workbenches CRAFT` now only blocks crafting table (3x3) crafting, not inventory (2x2) crafting. Use `inventory-craft` flag to block inventory crafting.*
+- 🎨 **New flag:** `inventory-craft` – block inventory crafting (2x2 grid) in regions
 
 ---
 
@@ -52,6 +54,7 @@ villager-trade / disable-collision
 allow-block-place / deny-block-place / allow-block-break / deny-block-break
 deny-item-drops / deny-item-pickup
 permit-workbenches
+inventory-craft
 ```
 
 **New in Plus:**
@@ -65,6 +68,7 @@ disable-collision
 allow-block-place / deny-block-place / allow-block-break / deny-block-break
 deny-item-drops / deny-item-pickup
 permit-workbenches
+inventory-craft
 ```
 
 ---
@@ -101,6 +105,8 @@ Example:
 /rg flag spawn permit-workbenches ALL,ender
 /rg flag spawn permit-workbenches craft,anvil,ender
 /rg flag spawn permit-workbenches clear
+
+/rg flag spawn inventory-craft deny
 
 /rg flag spawn chat-prefix "&7[%vault_rank%] "
 /rg flag spawn chat-suffix " &7[%player_level%]"

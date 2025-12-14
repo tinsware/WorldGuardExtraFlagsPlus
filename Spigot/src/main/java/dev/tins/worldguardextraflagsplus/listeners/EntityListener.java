@@ -586,7 +586,7 @@ public class EntityListener implements Listener
 	 */
 	private void sendInventoryCraftBlocked(Player player)
 	{
-		Messages.sendMessageWithCooldown(player, "deny-inventory-craft-blocked");
+		Messages.sendMessageWithCooldown(player, "inventory-craft-blocked");
 	}
 	
 	/**
@@ -655,9 +655,9 @@ public class EntityListener implements Listener
 				return;
 			}
 			
-			// Check deny-inventory-craft flag
+			// Check inventory-craft flag
 			ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(localPlayer.getLocation());
-			com.sk89q.worldguard.protection.flags.StateFlag.State state = regions.queryState(localPlayer, Flags.DENY_INVENTORY_CRAFT);
+			com.sk89q.worldguard.protection.flags.StateFlag.State state = regions.queryState(localPlayer, Flags.INVENTORY_CRAFT);
 			if (state == com.sk89q.worldguard.protection.flags.StateFlag.State.DENY)
 			{
 				// Set result to air to prevent crafting
@@ -751,7 +751,7 @@ public class EntityListener implements Listener
 		// Check inventory crafting (2x2 grid) - NEW FLAG
 		if (event.getInventory().getType() == org.bukkit.event.inventory.InventoryType.CRAFTING)
 		{
-			com.sk89q.worldguard.protection.flags.StateFlag.State state = regions.queryState(localPlayer, Flags.DENY_INVENTORY_CRAFT);
+			com.sk89q.worldguard.protection.flags.StateFlag.State state = regions.queryState(localPlayer, Flags.INVENTORY_CRAFT);
 			if (state == com.sk89q.worldguard.protection.flags.StateFlag.State.DENY)
 			{
 				event.setCancelled(true);

@@ -73,7 +73,7 @@ public final class Flags
 	
 	public final static StateFlag VILLAGER_TRADE = new StateFlag("villager-trade", true);
 	
-	public final static StateFlag DENY_INVENTORY_CRAFT = new StateFlag("deny-inventory-craft", false);
+	public final static StateFlag INVENTORY_CRAFT = new StateFlag("inventory-craft", false);
 	
 	public final static BooleanFlag DISABLE_COLLISION = new BooleanFlag("disable-collision");
 

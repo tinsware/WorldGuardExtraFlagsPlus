@@ -42,4 +42,4 @@ entry-max-level *
 deny-item-pickup *
 deny-item-drops *
 permit-workbenches *
-deny-inventory-craft *
+inventory-craft *
