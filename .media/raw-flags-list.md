@@ -1,4 +1,4 @@
-Total: 37 flags
+Total: 38 flags
 
 ## Old Flags (25)
 
@@ -28,7 +28,7 @@ chunk-unload
 item-durability
 join-location
 
-## New Flags (12)
+## New Flags (13)
 
 allow-block-place
 deny-block-place
@@ -36,9 +36,10 @@ allow-block-break
 deny-block-break
 villager-trade
 disable-collision
-permit-completely *
+disable-completely * (old name: permit-completely)
 entry-min-level *
 entry-max-level *
 deny-item-pickup *
 deny-item-drops *
 permit-workbenches *
+deny-inventory-craft *

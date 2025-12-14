@@ -12,7 +12,7 @@ An advanced WorldGuard extension that adds over 30+ extra region flags for full 
 
 - ✅ **Folia support** – fully compatible with async region handling
 - 🛡️ **New flag:** `disable-completely` – blocks all usage of specified items *(MACE, FIREWORK_ROCKET, WIND_CHARGE, TOTEM_OF_UNDYING, TRIDENT)*
-  - *Note: `permit-completely` is deprecated but still supported for backward compatibility. Please use `disable-completely` instead.*
+  - *Note: `permit-completely` is replaced. Please use `disable-completely` instead.*
 - 🎚️ **New flags:** `entry-min-level` / `entry-max-level` – restrict entry by **XP level** or **PlaceholderAPI values**
 - 💬 **Customizable messages** via `messages-wgefp.yml` (disable, recolor, or use placeholders)
 - 🔁 **Message cooldown system** to prevent spam (default 3 seconds)
@@ -57,7 +57,7 @@ permit-workbenches
 **New in Plus:**
 
 ```
-disable-completely (permit-completely is deprecated but still supported)
+disable-completely (old usage was: permit-completely)
 entry-min-level
 entry-max-level
 villager-trade
