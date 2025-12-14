@@ -5,7 +5,7 @@ description: |
   Documentation: -- tins --
   Original author Website: https://joniaromaa.fi
 main: dev.tins.worldguardextraflagsplus.WorldGuardExtraFlagsPlusPlugin
-version: 4.3.7
+version: 4.3.8
 api-version: 1.20
 folia-supported: true
 depend: [ WorldGuard ]

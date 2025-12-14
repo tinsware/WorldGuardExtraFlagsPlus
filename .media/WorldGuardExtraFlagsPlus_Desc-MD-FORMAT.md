@@ -113,7 +113,7 @@ Example:
 
 | Minecraft       | WorldGuard | ExtraFlagsPlus | Support   |
 | --------------- | ---------- | -------------- | --------- |
-| 1.20 – 1.21.10 | 7.0.13+    | 4.3.7+         | ✅ Active |
+| 1.20 – 1.21.10 | 7.0.13+    | 4.3.8+         | ✅ Active |
 | 1.7 – 1.19     | Older      | ❌ No support  |           |
 
 ---
@@ -134,6 +134,12 @@ All plugin messages live in `plugins/WorldGuard/messages-wgefp.yml`.
 
 - **ExtraFlags Plus Developer:** [tins](https://github.com/tins-dev)
 - **Original ExtraFlags Author:** [isokissa3](https://joniaromaa.fi)
+
+---
+
+## Support & Community
+
+- 💬 **Discord:** [Join our Discord server](https://discord.gg/TCJAwsdqum)
 
 ---
 

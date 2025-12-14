@@ -35,3 +35,7 @@ WorldGuard ExtraFlags Plus is extension to WorldGuard that adds 37+ new flags!
 
 - isokissa3
 - https://joniaromaa.fi
+
+## Support & Community
+
+- 💬 **Discord:** [Join our Discord server](https://discord.gg/TCJAwsdqum)
