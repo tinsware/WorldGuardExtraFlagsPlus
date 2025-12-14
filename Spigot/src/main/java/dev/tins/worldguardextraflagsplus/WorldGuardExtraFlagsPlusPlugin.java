@@ -98,7 +98,6 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
       flagRegistry.register(Flags.ITEM_DURABILITY);
       flagRegistry.register(Flags.JOIN_LOCATION);
       
-      flagRegistry.register(Flags.PERMIT_COMPLETELY); // Deprecated, kept for backward compatibility
       flagRegistry.register(Flags.DISABLE_COMPLETELY);
       flagRegistry.register(Flags.PERMIT_WORKBENCHES);
       flagRegistry.register(Flags.ENTRY_MIN_LEVEL);
@@ -330,58 +329,15 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 	/**
 	 * Updates in-memory region objects to migrate permit-completely flag to disable-completely.
 	 * This prevents the flag from reverting when WorldGuard saves regions.
+	 * Note: Since permit-completely flag is removed, this method only handles file-based migration.
+	 * In-memory regions will be updated when WorldGuard reloads regions from files.
 	 */
 	private void updateInMemoryRegions(String worldName)
 	{
-		try
-		{
-			// Check if regionContainer is initialized
-			if (this.regionContainer == null)
-			{
-				this.getLogger().warning("Cannot update in-memory regions for world '" + worldName + "': regionContainer is not initialized yet");
-				return;
-			}
-			
-			org.bukkit.World bukkitWorld = this.getServer().getWorld(worldName);
-			if (bukkitWorld == null)
-			{
-				return; // World not loaded
-			}
-			
-			RegionManager regionManager = this.regionContainer.get(BukkitAdapter.adapt(bukkitWorld));
-			if (regionManager == null)
-			{
-				return;
-			}
-			
-			int migratedCount = 0;
-			
-			// Iterate through all regions in memory
-			for (ProtectedRegion region : regionManager.getRegions().values())
-			{
-				// Check if region has permit-completely flag
-				java.util.Set<String> permitValue = region.getFlag(Flags.PERMIT_COMPLETELY);
-				if (permitValue != null && !permitValue.isEmpty())
-				{
-					// Migrate: set disable-completely flag with same value
-					region.setFlag(Flags.DISABLE_COMPLETELY, permitValue);
-					// Remove old flag
-					region.setFlag(Flags.PERMIT_COMPLETELY, null);
-					
-					migratedCount++;
-					this.getLogger().info("Migrated in-memory flag 'permit-completely' to 'disable-completely' for region '" + region.getId() + "' in world '" + worldName + "'");
-				}
-			}
-			
-			if (migratedCount > 0)
-			{
-				this.getLogger().info("In-memory migration completed for world '" + worldName + "': " + migratedCount + " region(s) updated");
-			}
-		}
-		catch (Exception e)
-		{
-			this.getLogger().log(java.util.logging.Level.WARNING, "Failed to update in-memory regions for world '" + worldName + "': " + e.getMessage(), e);
-		}
+		// Note: permit-completely flag has been removed.
+		// File-based migration handles the conversion in regions.yml files.
+		// When WorldGuard reloads regions, it will read the migrated disable-completely flag from files.
+		// This method is kept for compatibility but no longer performs in-memory migration.
 	}
 	
 	private void setupMetrics()

@@ -1,18 +1,20 @@
 Quick reference for removing `permit-completely` migration code in a future version.
 
+**Status:** `permit-completely` flag has been removed in version 4.3.8. Migration code is kept for one more version to help migrate existing region files.
+
 **Flags.java**
-- `PERMIT_COMPLETELY` field and `@Deprecated` annotation (line ~82)
+- ✅ REMOVED: `PERMIT_COMPLETELY` field (removed in 4.3.8)
 
 **WorldGuardExtraFlagsPlusPlugin.java**
-- `flagRegistry.register(Flags.PERMIT_COMPLETELY);` in `onLoad()` (line ~101)
-- `migrateRegionFiles()` method (lines ~252-310)
-- `updateInMemoryRegions()` method (lines ~333-385)
-- Migration calls in `onEnable()` (lines ~141, 152-158)
+- ✅ REMOVED: `flagRegistry.register(Flags.PERMIT_COMPLETELY);` (removed in 4.3.8)
+- `migrateRegionFiles()` method (lines ~252-310) - KEEP for one more version
+- `updateInMemoryRegions()` method (lines ~333-385) - Simplified, no longer migrates in-memory
+- Migration calls in `onEnable()` (lines ~141, 152-158) - KEEP for one more version
 
 **EntityListener.java**
-- Fallback to `PERMIT_COMPLETELY` in `isBlocked()` method (lines ~137-157)
-- Deprecation warning logging (lines ~143-156)
-- Fallback to `permit-completely-blocked` message in `sendBlocked()` method (line ~181)
+- ✅ REMOVED: Fallback to `PERMIT_COMPLETELY` in `isBlocked()` method (removed in 4.3.8)
+- ✅ REMOVED: Deprecation warning logging (removed in 4.3.8)
+- ✅ REMOVED: Fallback to `permit-completely-blocked` message in `sendBlocked()` method (removed in 4.3.8)
 
 **Messages.java**
 - Old `messages.yml` deletion logic in `initialize()` method (lines ~35-59)
