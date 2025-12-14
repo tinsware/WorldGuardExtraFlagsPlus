@@ -84,7 +84,33 @@ public class EntityListener implements Listener
         
         // Check if flag is set in region (inheritance handled automatically by WorldGuard)
         ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(localPlayer.getLocation());
-        java.util.Set<String> set = regions.queryValue(localPlayer, Flags.PERMIT_COMPLETELY);
+        
+        // Check new flag first (disable-completely)
+        java.util.Set<String> set = regions.queryValue(localPlayer, Flags.DISABLE_COMPLETELY);
+        boolean usingDeprecatedFlag = false;
+        
+        // Fall back to deprecated flag if new flag is not set
+        if (set == null || set.isEmpty())
+        {
+            set = regions.queryValue(localPlayer, Flags.PERMIT_COMPLETELY);
+            usingDeprecatedFlag = (set != null && !set.isEmpty());
+            
+            // Log deprecation warning if old flag is used
+            if (usingDeprecatedFlag)
+            {
+                // Get region name for warning (use first applicable region)
+                for (com.sk89q.worldguard.protection.regions.ProtectedRegion region : regions)
+                {
+                    this.worldGuardPlugin.getLogger().warning(
+                        "Region '" + region.getId() + "' uses deprecated flag 'permit-completely'. " +
+                        "Please update to 'disable-completely'. " +
+                        "Run: /rg flag " + region.getId() + " disable-completely <items>"
+                    );
+                    break; // Only log once per check
+                }
+            }
+        }
+        
         if (set == null || set.isEmpty())
         {
             return false;
@@ -103,8 +129,12 @@ public class EntityListener implements Listener
 
     private void sendBlocked(Player player, String itemName)
     {
-        // Use cooldown-aware message sending
-        Messages.sendMessageWithCooldown(player, "permit-completely-blocked", "item", itemName);
+        // Use cooldown-aware message sending (try new key first, fall back to old for compatibility)
+        if (!Messages.sendMessageWithCooldown(player, "disable-completely-blocked", "item", itemName))
+        {
+            // Fall back to old message key if new one doesn't exist
+            Messages.sendMessageWithCooldown(player, "permit-completely-blocked", "item", itemName);
+        }
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = false)

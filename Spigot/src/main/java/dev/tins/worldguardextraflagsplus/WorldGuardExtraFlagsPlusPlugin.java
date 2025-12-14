@@ -1,5 +1,10 @@
 package dev.tins.worldguardextraflagsplus;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
@@ -91,7 +96,8 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
       flagRegistry.register(Flags.ITEM_DURABILITY);
       flagRegistry.register(Flags.JOIN_LOCATION);
       
-      flagRegistry.register(Flags.PERMIT_COMPLETELY);
+      flagRegistry.register(Flags.PERMIT_COMPLETELY); // Deprecated, kept for backward compatibility
+      flagRegistry.register(Flags.DISABLE_COMPLETELY);
       flagRegistry.register(Flags.ENTRY_MIN_LEVEL);
       flagRegistry.register(Flags.ENTRY_MAX_LEVEL);
       flagRegistry.register(Flags.VILLAGER_TRADE);
@@ -122,13 +128,28 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 	@Override
 	public void onEnable()
 	{
-		// Initialize messages system first (loads messages.yml from WorldGuard folder)
+		// Initialize messages system first (loads wgefp-messages.yml from WorldGuard folder)
 		Messages.initialize(this);
+		
+		// Migrate region files: rename permit-completely to disable-completely (file only, in-memory update happens later)
+		java.util.Set<String> migratedWorlds = this.migrateRegionFiles();
 		
 		WorldGuardUtils.initializeScheduler(this);
 		
+		// Note: Collision team initialization is done lazily on first use
+		// because Folia doesn't allow team registration on main scoreboard during startup
+		
 		this.regionContainer = this.worldGuard.getPlatform().getRegionContainer();
 		this.sessionManager = this.worldGuard.getPlatform().getSessionManager();
+		
+		// Now update in-memory region objects for worlds that were migrated
+		if (!migratedWorlds.isEmpty())
+		{
+			for (String worldName : migratedWorlds)
+			{
+				this.updateInMemoryRegions(worldName);
+			}
+		}
 
 		this.sessionManager.registerHandler(TeleportOnEntryFlagHandler.FACTORY(plugin), null);
 		this.sessionManager.registerHandler(TeleportOnExitFlagHandler.FACTORY(plugin), null);
@@ -214,6 +235,145 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 					}
 				}
 			}
+		}
+	}
+	
+	/**
+	 * Migrates region files: renames "permit-completely" flag to "disable-completely" in region YAML files.
+	 * This is a one-time migration that runs on plugin enable.
+	 * Returns a set of world names that were migrated (for in-memory update later).
+	 */
+	private java.util.Set<String> migrateRegionFiles()
+	{
+		java.util.Set<String> migratedWorlds = new java.util.HashSet<>();
+		
+		try
+		{
+			File worldGuardDataFolder = this.worldGuardPlugin.getDataFolder();
+			File worldsFolder = new File(worldGuardDataFolder, "worlds");
+			
+			if (!worldsFolder.exists() || !worldsFolder.isDirectory())
+			{
+				return migratedWorlds; // No worlds folder, nothing to migrate
+			}
+			
+			int migratedCount = 0;
+			
+			// Iterate through all world folders
+			File[] worldFolders = worldsFolder.listFiles(File::isDirectory);
+			if (worldFolders == null)
+			{
+				return migratedWorlds;
+			}
+			
+			for (File worldFolder : worldFolders)
+			{
+				File regionsFile = new File(worldFolder, "regions.yml");
+				if (!regionsFile.exists() || !regionsFile.isFile())
+				{
+					continue; // No regions file for this world
+				}
+				
+				try
+				{
+					// Read file as text to preserve exact formatting
+					String fileContent = new String(Files.readAllBytes(regionsFile.toPath()), StandardCharsets.UTF_8);
+					String originalContent = fileContent;
+					
+					// Use regex to replace permit-completely with disable-completely
+					// Match: permit-completely: (with any whitespace before it, preserving indentation)
+					// This preserves all formatting, spacing, and structure
+					fileContent = fileContent.replaceAll("(?m)^(\\s*)permit-completely\\s*:", "$1disable-completely:");
+					
+					// Only write if content changed
+					if (!fileContent.equals(originalContent))
+					{
+						// Write back with exact same formatting
+						Files.write(regionsFile.toPath(), fileContent.getBytes(StandardCharsets.UTF_8), StandardOpenOption.TRUNCATE_EXISTING);
+						
+						// Count how many regions were migrated (count occurrences)
+						int occurrences = (originalContent.length() - originalContent.replace("permit-completely:", "").length()) / "permit-completely:".length();
+						migratedCount += occurrences;
+						
+						this.getLogger().info("Migrated flag 'permit-completely' to 'disable-completely' in region file for world '" + worldFolder.getName() + "' (" + occurrences + " occurrence(s))");
+						
+						// Add to set for in-memory update later
+						migratedWorlds.add(worldFolder.getName());
+					}
+				}
+				catch (Exception e)
+				{
+					this.getLogger().log(java.util.logging.Level.WARNING, "Failed to migrate region file for world '" + worldFolder.getName() + "': " + e.getMessage(), e);
+				}
+			}
+			
+			if (migratedCount > 0)
+			{
+				this.getLogger().info("Region file migration completed: " + migratedCount + " flag occurrence(s) migrated from 'permit-completely' to 'disable-completely'");
+			}
+		}
+		catch (Exception e)
+		{
+			this.getLogger().log(java.util.logging.Level.WARNING, "Failed to migrate region files: " + e.getMessage(), e);
+		}
+		
+		return migratedWorlds;
+	}
+	
+	/**
+	 * Updates in-memory region objects to migrate permit-completely flag to disable-completely.
+	 * This prevents the flag from reverting when WorldGuard saves regions.
+	 */
+	private void updateInMemoryRegions(String worldName)
+	{
+		try
+		{
+			// Check if regionContainer is initialized
+			if (this.regionContainer == null)
+			{
+				this.getLogger().warning("Cannot update in-memory regions for world '" + worldName + "': regionContainer is not initialized yet");
+				return;
+			}
+			
+			org.bukkit.World bukkitWorld = this.getServer().getWorld(worldName);
+			if (bukkitWorld == null)
+			{
+				return; // World not loaded
+			}
+			
+			RegionManager regionManager = this.regionContainer.get(BukkitAdapter.adapt(bukkitWorld));
+			if (regionManager == null)
+			{
+				return;
+			}
+			
+			int migratedCount = 0;
+			
+			// Iterate through all regions in memory
+			for (ProtectedRegion region : regionManager.getRegions().values())
+			{
+				// Check if region has permit-completely flag
+				java.util.Set<String> permitValue = region.getFlag(Flags.PERMIT_COMPLETELY);
+				if (permitValue != null && !permitValue.isEmpty())
+				{
+					// Migrate: set disable-completely flag with same value
+					region.setFlag(Flags.DISABLE_COMPLETELY, permitValue);
+					// Remove old flag
+					region.setFlag(Flags.PERMIT_COMPLETELY, null);
+					
+					migratedCount++;
+					this.getLogger().info("Migrated in-memory flag 'permit-completely' to 'disable-completely' for region '" + region.getId() + "' in world '" + worldName + "'");
+				}
+			}
+			
+			if (migratedCount > 0)
+			{
+				this.getLogger().info("In-memory migration completed for world '" + worldName + "': " + migratedCount + " region(s) updated");
+			}
+		}
+		catch (Exception e)
+		{
+			this.getLogger().log(java.util.logging.Level.WARNING, "Failed to update in-memory regions for world '" + worldName + "': " + e.getMessage(), e);
 		}
 	}
 	

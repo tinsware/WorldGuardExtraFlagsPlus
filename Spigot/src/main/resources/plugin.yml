@@ -19,5 +19,5 @@ commands:
     aliases: [wgefplus, worldguardextraflagsplus]
     permission: worldguardextraflagsplus.reload
     usage: |
-      /<command> reload - Reload messages from messages.yml
+      /<command> reload - Reload messages from wgefp-messages.yml
 

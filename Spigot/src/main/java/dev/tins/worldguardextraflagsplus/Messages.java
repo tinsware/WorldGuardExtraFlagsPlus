@@ -29,16 +29,42 @@ public class Messages
 		// Get WorldGuard plugin data folder
 		File worldGuardDataFolder = plugin.getServer().getPluginManager().getPlugin("WorldGuard").getDataFolder();
 		
-		// Create messages.yml in WorldGuard folder
-		messagesFile = new File(worldGuardDataFolder, "messages.yml");
+		// Create wgefp-messages.yml in WorldGuard folder
+		messagesFile = new File(worldGuardDataFolder, "wgefp-messages.yml");
 		
-		// Copy default messages.yml if it doesn't exist
+		// Handle old messages.yml file migration/deletion
+		File oldMessagesFile = new File(worldGuardDataFolder, "messages.yml");
+		if (oldMessagesFile.exists())
+		{
+			try
+			{
+				FileConfiguration oldConfig = YamlConfiguration.loadConfiguration(oldMessagesFile);
+				if (oldConfig.contains("permit-completely-blocked"))
+				{
+					// Old file contains the deprecated message key, delete it
+					if (oldMessagesFile.delete())
+					{
+						plugin.getLogger().info("Deleted old messages.yml file (migrated to wgefp-messages.yml)");
+					}
+					else
+					{
+						plugin.getLogger().warning("Failed to delete old messages.yml file. Please delete it manually.");
+					}
+				}
+			}
+			catch (Exception e)
+			{
+				plugin.getLogger().log(Level.WARNING, "Error checking old messages.yml file: " + e.getMessage(), e);
+			}
+		}
+		
+		// Copy default wgefp-messages.yml if it doesn't exist
 		if (!messagesFile.exists())
 		{
 			saveDefaultMessages(worldGuardDataFolder);
 		}
 		
-		// Load messages.yml
+		// Load wgefp-messages.yml
 		reloadMessages();
 	}
 
@@ -52,19 +78,19 @@ public class Messages
 				worldGuardDataFolder.mkdirs();
 			}
 			
-			// Check if messages.yml already exists in WorldGuard folder
+			// Check if wgefp-messages.yml already exists in WorldGuard folder
 			if (messagesFile.exists())
 			{
 				// File already exists, don't overwrite it (admin might have customized it)
-				plugin.getLogger().info("messages.yml already exists in WorldGuard folder, skipping default copy.");
+				plugin.getLogger().info("wgefp-messages.yml already exists in WorldGuard folder, skipping default copy.");
 				return;
 			}
 			
 			// Load default messages from plugin resources
-			InputStream defaultStream = plugin.getResource("messages.yml");
+			InputStream defaultStream = plugin.getResource("wgefp-messages.yml");
 			if (defaultStream == null)
 			{
-				plugin.getLogger().warning("Default messages.yml not found in plugin resources!");
+				plugin.getLogger().warning("Default wgefp-messages.yml not found in plugin resources!");
 				return;
 			}
 			
@@ -79,11 +105,11 @@ public class Messages
 			outputStream.close();
 			defaultStream.close();
 			
-			plugin.getLogger().info("Created messages.yml in WorldGuard folder: " + messagesFile.getAbsolutePath());
+			plugin.getLogger().info("Created wgefp-messages.yml in WorldGuard folder: " + messagesFile.getAbsolutePath());
 		}
 		catch (Exception e)
 		{
-			plugin.getLogger().log(Level.SEVERE, "Failed to save default messages.yml", e);
+			plugin.getLogger().log(Level.SEVERE, "Failed to save default wgefp-messages.yml", e);
 		}
 	}
 
@@ -94,7 +120,7 @@ public class Messages
 			messages = YamlConfiguration.loadConfiguration(messagesFile);
 			
 			// Load UTF-8 encoding properly
-			InputStream defaultStream = plugin.getResource("messages.yml");
+			InputStream defaultStream = plugin.getResource("wgefp-messages.yml");
 			if (defaultStream != null)
 			{
 				InputStreamReader reader = new InputStreamReader(defaultStream, StandardCharsets.UTF_8);
@@ -117,7 +143,7 @@ public class Messages
 		}
 		catch (Exception e)
 		{
-			plugin.getLogger().log(Level.SEVERE, "Failed to load messages.yml", e);
+			plugin.getLogger().log(Level.SEVERE, "Failed to load wgefp-messages.yml", e);
 			// Fallback: use in-memory configuration
 			messages = new YamlConfiguration();
 			messageCooldownSeconds = 3; // Default fallback

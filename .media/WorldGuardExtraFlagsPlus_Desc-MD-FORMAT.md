@@ -11,9 +11,10 @@ An advanced WorldGuard extension that adds over 30+ extra region flags for full 
 ## Key Features
 
 - ✅ **Folia support** – fully compatible with async region handling
-- 🛡️ **New flag:** `permit-completely` – blocks all usage of specified items *(MACE, FIREWORK_ROCKET, WIND_CHARGE, TOTEM_OF_UNDYING, TRIDENT)*
+- 🛡️ **New flag:** `disable-completely` – blocks all usage of specified items *(MACE, FIREWORK_ROCKET, WIND_CHARGE, TOTEM_OF_UNDYING, TRIDENT)*
+  - *Note: `permit-completely` is deprecated but still supported for backward compatibility. Please use `disable-completely` instead.*
 - 🎚️ **New flags:** `entry-min-level` / `entry-max-level` – restrict entry by **XP level** or **PlaceholderAPI values**
-- 💬 **Customizable messages** via `messages.yml` (disable, recolor, or use placeholders)
+- 💬 **Customizable messages** via `wgefp-messages.yml` (disable, recolor, or use placeholders)
 - 🔁 **Message cooldown system** to prevent spam (default 3 seconds)
 - 🏪 **New flag:** `villager-trade` – control villager trading in regions
 - 🚫 **New flag:** `disable-collision` – disable player collision in regions
@@ -44,7 +45,7 @@ godmode / blocked-effects
 respawn-location / worldedit / give-effects  
 fly / play-sounds / frostwalker / nether-portals / glide (elytra-blocker)
 chunk-unload / item-durability / join-location
-permit-completely / entry-min-level / entry-max-level
+disable-completely / entry-min-level / entry-max-level
 villager-trade / disable-collision
 allow-block-place / deny-block-place / allow-block-break / deny-block-break
 ```
@@ -52,7 +53,7 @@ allow-block-place / deny-block-place / allow-block-break / deny-block-break
 **New in Plus:**
 
 ```
-permit-completely
+disable-completely (permit-completely is deprecated but still supported)
 entry-min-level
 entry-max-level
 villager-trade
@@ -70,10 +71,10 @@ all ExtraFlagsPlus flags integrate natively.
 Example:
 
 ```
-/rg flag spawn permit-completely MACE
-/rg flag spawn permit-completely MACE,FIREWORK_ROCKET
+/rg flag spawn disable-completely MACE
+/rg flag spawn disable-completely MACE,FIREWORK_ROCKET
 
-/rg flag spawn permit-completely clear (especially for inherited child regions)
+/rg flag spawn disable-completely clear (especially for inherited child regions)
 
 /rg flag dungeon entry-min-level 20 XP
 /rg flag dungeon entry-min-level 40 %battlepass_tier%
@@ -105,7 +106,7 @@ Example:
 
 ## Message Customization
 
-All plugin messages live in `plugins/WorldGuard/messages.yml`.
+All plugin messages live in `plugins/WorldGuard/wgefp-messages.yml`.
 
 - Edit freely to match your style
 - Use `{required}`, `{current}`, `{item}` placeholders

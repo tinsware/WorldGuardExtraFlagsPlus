@@ -3,13 +3,15 @@
 A Bukkit plugin extension that provides extra flags for [WorldGuard](https://github.com/EngineHub/WorldGuard).
 
 - Support for **Folia** ✅
-- New Flag **"permit-completely"** | Blocks all usage of specified items (MACE, FIREWORK_ROCKET, WIND_CHARGE, TOTEM_OF_UNDYING, TRIDENT) ✅
+- New Flag **"disable-completely"** | Blocks all usage of specified items (MACE, FIREWORK_ROCKET, WIND_CHARGE, TOTEM_OF_UNDYING, TRIDENT) ✅
+  - *Note: `permit-completely` is deprecated but still supported for backward compatibility. Please use `disable-completely` instead.*
 - New Flags **"entry-min-level"** & **"entry-max-level"** | Restrict region entry based on **Player (xp) level** or **PlaceholderAPI** values ✅
-- New **Configurable Messages** | Customize all plugin messages via `messages.yml` in WorldGuard folder ✅
+- New **Configurable Messages** | Customize all plugin messages via `wgefp-messages.yml` in WorldGuard folder ✅
 - New **Message Cooldown System** | Prevents message spam with configurable cooldown (default: 3 seconds) ✅
 - **Update Checker** | Automatically checks for updates from Spigot, GitHub, and Modrinth ✅
 - New Flag **"villager-trade"** | Control villager trading in regions ✅
 - New Flag **"disable-collision"** | Disable player collision in regions ✅
+  - *Note: On Folia servers, this flag requires the team `WGEFP_COLLISION_DISABLED` to be pre-created on the main scoreboard (Folia limitation). Works automatically on Paper/Spigot.*
 - **PlaceholderAPI Chat Integration** | Chat prefix/suffix supports PlaceholderAPI placeholders ✅
 - New Flags **"allow-block-place"**, **"deny-block-place"**, **"allow-block-break"**, **"deny-block-break"** | Fine-grained block placement and breaking control ✅
 
