@@ -56,7 +56,12 @@ public class ConsoleCommandOnEntryFlagHandler extends Handler
 				if (!this.lastCommands.contains(commands_))
 				{
 					for (String command : commands_) {
-						WorldGuardUtils.getScheduler().runNextTick((wrappedTask) -> Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), command.substring(1).replace("%username%", player.getName()))); //TODO: Make this better
+						String processedCommand = command.substring(1)
+							.replace("%username%", player.getName())
+							.replace("%player%", player.getName())
+							.replace("{player}", player.getName())
+							.replace("{username}", player.getName());
+						WorldGuardUtils.getScheduler().runNextTick((wrappedTask) -> Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), processedCommand));
 					}
 
 					break;
