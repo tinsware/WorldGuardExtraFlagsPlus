@@ -56,8 +56,9 @@ public class CommandOnEntryFlagHandler extends Handler
 			{
 				if (!this.lastCommands.contains(commands_) && commands_.size() > 0)
 				{
+					org.bukkit.entity.Player bukkitPlayer = ((BukkitPlayer) player).getPlayer();
 					for (String command : commands_) {
-						WorldGuardUtils.getScheduler().runNextTick((wrappedTask) -> Bukkit.getServer().dispatchCommand(((BukkitPlayer) player).getPlayer(), command.substring(1).replace("%username%", player.getName()))); //TODO: Make this better
+						WorldGuardUtils.getScheduler().runAtEntity(bukkitPlayer, (wrappedTask) -> Bukkit.getServer().dispatchCommand(bukkitPlayer, command.substring(1).replace("%username%", player.getName()))); //TODO: Make this better
 					}
 
 					break;
