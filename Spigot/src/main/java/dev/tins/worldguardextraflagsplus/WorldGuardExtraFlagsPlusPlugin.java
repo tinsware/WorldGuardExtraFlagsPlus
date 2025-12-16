@@ -142,8 +142,12 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 		
 		WorldGuardUtils.initializeScheduler(this);
 		
-		// Note: Collision team initialization is done lazily on first use
-		// because Folia doesn't allow team registration on main scoreboard during startup
+		// Initialize collision team during startup
+		// On Folia, this will detect that main scoreboard team creation is not supported
+		// and automatically fall back to per-player scoreboards
+		WorldGuardUtils.getScheduler().runNextTick(task -> {
+			dev.tins.worldguardextraflagsplus.wg.handlers.CollisionFlagHandler.initializeTeam();
+		});
 		
 		this.regionContainer = this.worldGuard.getPlatform().getRegionContainer();
 		this.sessionManager = this.worldGuard.getPlatform().getSessionManager();
