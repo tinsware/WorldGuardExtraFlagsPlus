@@ -56,8 +56,7 @@ public class ReloadCommand implements CommandExecutor, TabCompleter
 		catch (Exception e)
 		{
 			sender.sendMessage("§cFailed to reload messages/config: " + e.getMessage());
-			plugin.getLogger().severe("Failed to reload messages/config: " + e.getMessage());
-			e.printStackTrace();
+			plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to reload messages/config", e);
 		}
 
 		return true;

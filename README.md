@@ -18,6 +18,7 @@ A Bukkit plugin extension that provides extra flags for [WorldGuard](https://git
 - New Flag **"permit-workbenches"** | Block workbench usage (anvil, crafting table, ender chest, etc.) and crafting table crafting in regions ✅
   - *Note: `permit-workbenches CRAFT` now only blocks crafting table (3x3) crafting, not inventory (2x2) crafting. Use `inventory-craft` flag to block inventory crafting.*
 - New Flag **"inventory-craft"** | Block inventory crafting (2x2 grid) in regions ✅
+- **Godmode Flag Enhancement** | The `godmode` flag now also disables EssentialsX godmode when entering regions with godmode disabled (EssentialsX integration) ✅
 
 ## About
 

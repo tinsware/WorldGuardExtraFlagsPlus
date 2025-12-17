@@ -266,6 +266,133 @@ public class Messages
 				}
 			}
 			
+			// Add godmode-disabled if missing (check actual file, not defaults)
+			if (!fileConfig.contains("godmode-disabled", false))
+			{
+				// Read file as text if not already read
+				if (fileContent == null)
+				{
+					fileContent = new String(Files.readAllBytes(messagesFile.toPath()), StandardCharsets.UTF_8);
+				}
+				String originalContent = fileContent;
+				
+				String defaultValue = defaultConfig != null ? defaultConfig.getString("godmode-disabled") : "&cHey! &7Godmode disabled in this region!";
+				if (defaultValue != null)
+				{
+					// Detect quote style from existing messages (prefer double quotes, fallback to single)
+					String quoteChar = "\"";
+					if (fileContent.contains("inventory-craft-blocked:") || fileContent.contains("permit-workbenches-blocked:") || fileContent.contains("disable-completely-blocked:"))
+					{
+						// Check what quote style is used
+						String sampleLine = "";
+						if (fileContent.contains("inventory-craft-blocked:"))
+						{
+							sampleLine = fileContent.substring(fileContent.indexOf("inventory-craft-blocked:"));
+						}
+						else if (fileContent.contains("permit-workbenches-blocked:"))
+						{
+							sampleLine = fileContent.substring(fileContent.indexOf("permit-workbenches-blocked:"));
+						}
+						else if (fileContent.contains("disable-completely-blocked:"))
+						{
+							sampleLine = fileContent.substring(fileContent.indexOf("disable-completely-blocked:"));
+						}
+						
+						if (!sampleLine.isEmpty())
+						{
+							int firstQuote = sampleLine.indexOf('\'');
+							int firstDoubleQuote = sampleLine.indexOf('"');
+							if (firstQuote != -1 && (firstDoubleQuote == -1 || firstQuote < firstDoubleQuote))
+							{
+								quoteChar = "'";
+							}
+						}
+					}
+					
+					// Find the last message entry and add the new one after it
+					// Look for the last message line
+					if (fileContent.contains("inventory-craft-blocked:") || fileContent.contains("permit-workbenches-blocked:") || fileContent.contains("disable-completely-blocked:"))
+					{
+						// Add after the last message entry
+						String newEntry = "\n# Godmode disabled message (extra plugins and worldguard)\ngodmode-disabled: " + quoteChar + defaultValue + quoteChar;
+						
+						// Find the last occurrence of a message entry and add after it
+						int lastIndex = Math.max(
+							Math.max(
+								fileContent.lastIndexOf("inventory-craft-blocked:"),
+								fileContent.lastIndexOf("permit-workbenches-blocked:")
+							),
+							fileContent.lastIndexOf("disable-completely-blocked:")
+						);
+						
+						if (lastIndex != -1)
+						{
+							// Find the end of that line (handle wrapped lines by finding the next non-indented line or end of file)
+							int lineEnd = fileContent.indexOf('\n', lastIndex);
+							if (lineEnd == -1)
+							{
+								lineEnd = fileContent.length();
+							}
+							else
+							{
+								lineEnd++; // Include the newline
+								// Skip any wrapped continuation lines (lines that start with spaces after the value)
+								while (lineEnd < fileContent.length())
+								{
+									int nextLineStart = lineEnd;
+									// Skip whitespace
+									while (nextLineStart < fileContent.length() && (fileContent.charAt(nextLineStart) == ' ' || fileContent.charAt(nextLineStart) == '\t'))
+									{
+										nextLineStart++;
+									}
+									// If next line starts with a quote or is empty/comment, it's a continuation
+									if (nextLineStart < fileContent.length() && 
+										(fileContent.charAt(nextLineStart) == '"' || 
+										 fileContent.charAt(nextLineStart) == '\'' ||
+										 fileContent.charAt(nextLineStart) == '#' ||
+										 fileContent.charAt(nextLineStart) == '\n' ||
+										 fileContent.charAt(nextLineStart) == '\r'))
+									{
+										// This is a continuation line, skip it
+										int nextNewline = fileContent.indexOf('\n', nextLineStart);
+										if (nextNewline == -1)
+										{
+											lineEnd = fileContent.length();
+											break;
+										}
+										lineEnd = nextNewline + 1;
+									}
+									else
+									{
+										// This is a new key, stop here
+										break;
+									}
+								}
+							}
+							
+							// Insert the new entry
+							fileContent = fileContent.substring(0, lineEnd) + newEntry + fileContent.substring(lineEnd);
+						}
+						else
+						{
+							// Fallback: append at the end
+							fileContent = fileContent + newEntry;
+						}
+					}
+					else
+					{
+						// Fallback: append at the end
+						fileContent = fileContent + "\n# Godmode disabled message (extra plugins and worldguard)\ngodmode-disabled: " + quoteChar + defaultValue + quoteChar;
+					}
+					
+					if (!fileContent.equals(originalContent))
+					{
+						needsSave = true;
+						plugin.getLogger().info("Added missing 'godmode-disabled' key to messages-wgefp.yml");
+					}
+				}
+			}
+			
 			// Save if changes were made (using text-based save to preserve formatting)
 			if (needsSave && fileContent != null)
 			{

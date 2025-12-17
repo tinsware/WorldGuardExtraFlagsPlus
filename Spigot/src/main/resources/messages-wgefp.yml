@@ -37,3 +37,6 @@ permit-workbenches-blocked: "&cHey! &7You can not use {workbench} in here!"
 # Inventory craft flag message
 inventory-craft-blocked: "&cHey! &7You can not craft items in your inventory here!"
 
+# Godmode disabled message (extra plugins and worldguard)
+godmode-disabled: "&cHey! &7Godmode disabled in this region!"
+
