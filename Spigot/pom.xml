@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>dev.tins</groupId>
 		<artifactId>worldguardextraflagsplus</artifactId>
-		<version>4.3.9</version>
+		<version>4.3.10</version>
 	</parent>
 
 	<groupId>dev.tins.worldguardextraflagsplus</groupId>
