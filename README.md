@@ -11,7 +11,7 @@ A Bukkit plugin extension that provides extra flags for [WorldGuard](https://git
 - **Update Checker** | Automatically checks for updates from Spigot, GitHub, and Modrinth ✅
 - New Flag **"villager-trade"** | Control villager trading in regions ✅
 - New Flag **"disable-collision"** | Disable player collision in regions ✅
-  - *Note: On Folia servers, this flag automatically uses per-player scoreboards (Folia limitation). On Paper/Spigot, it uses the main scoreboard.*
+  - *Uses Minecraft's native scoreboard teams to control collision. TAB plugin is supported with API integration. May conflict with other plugins that use teams. See [documentation](public-documents/disable-collision%20flag%20documentation.md) for details.*
 - **PlaceholderAPI Chat Integration** | Chat prefix/suffix supports PlaceholderAPI placeholders ✅
 - New Flags **"allow-block-place"**, **"deny-block-place"**, **"allow-block-break"**, **"deny-block-break"** | Fine-grained block placement and breaking control ✅
 - New Flags **"deny-item-drops"**, **"deny-item-pickup"** | Restrict specific items from being dropped or picked up (works when WorldGuard allows drops/pickups) ✅

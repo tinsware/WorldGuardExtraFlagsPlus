@@ -50,6 +50,10 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 
 	@Getter private ProtocolLibHelper protocolLibHelper;
 	
+	// Collision flag handler (uses native Minecraft teams, no external libraries needed)
+	@Getter private boolean collisionFlagEnabled = false;
+	@Getter private dev.tins.worldguardextraflagsplus.collision.CollisionPacketHandler collisionPacketHandler = null;
+	
 	public WorldGuardExtraFlagsPlusPlugin()
 	{
 		WorldGuardExtraFlagsPlusPlugin.plugin = this;
@@ -62,6 +66,13 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 		this.worldGuardPlugin = (WorldGuardPlugin) this.getServer().getPluginManager().getPlugin("WorldGuard");
 
 		this.worldGuard = WorldGuard.getInstance();
+		
+		// Collision flag uses native Minecraft teams - no external libraries needed
+		// Enable by default; scoreboard availability will be checked in onEnable() when server is fully loaded
+		this.collisionFlagEnabled = true;
+		
+		// Get ProtocolLib plugin for give-effects flag (separate from collision)
+		Plugin protocolLibPlugin = this.getServer().getPluginManager().getPlugin("ProtocolLib");
 
 		try
 		{
@@ -104,6 +115,8 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
       flagRegistry.register(Flags.ENTRY_MAX_LEVEL);
       flagRegistry.register(Flags.VILLAGER_TRADE);
       flagRegistry.register(Flags.INVENTORY_CRAFT);
+      
+      // Register collision flag (scoreboard availability will be checked in onEnable())
       flagRegistry.register(Flags.DISABLE_COLLISION);
 		}
 		catch (Exception e)
@@ -115,9 +128,10 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 					"Flag registration failed!", e);
 		}
 		
+		// Initialize ProtocolLib helper (for potion effect packet suppression)
+		// This is separate from collision flag - ProtocolLib is used for give-effects flag
 		try
 		{
-			Plugin protocolLibPlugin = this.getServer().getPluginManager().getPlugin("ProtocolLib");
 			if (protocolLibPlugin != null)
 			{
 				this.protocolLibHelper = new ProtocolLibHelper(this, protocolLibPlugin);
@@ -142,11 +156,10 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 		
 		WorldGuardUtils.initializeScheduler(this);
 		
-		// Initialize collision team during startup
-		// On Folia, this will detect that main scoreboard team creation is not supported
-		// and automatically fall back to per-player scoreboards
+		// Clean up old collision team from previous team-based implementation
+		// Run after server fully loads to ensure scoreboard is available
 		WorldGuardUtils.getScheduler().runNextTick(task -> {
-			dev.tins.worldguardextraflagsplus.wg.handlers.CollisionFlagHandler.initializeTeam();
+			this.cleanupOldCollisionTeam();
 		});
 		
 		this.regionContainer = this.worldGuard.getPlatform().getRegionContainer();
@@ -178,7 +191,73 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 		this.sessionManager.registerHandler(ConsoleCommandOnEntryFlagHandler.FACTORY(), null);
 		this.sessionManager.registerHandler(ConsoleCommandOnExitFlagHandler.FACTORY(), null);
 		this.sessionManager.registerHandler(EntryLevelFlagHandler.FACTORY(plugin), null);
-		this.sessionManager.registerHandler(CollisionFlagHandler.FACTORY(), null);
+		
+		// Initialize collision handler (uses native Minecraft teams, no external libraries needed)
+		// Check scoreboard availability now that server is fully loaded
+		try
+		{
+			// Check if TAB is installed (TAB integration is supported)
+			boolean tabInstalled = this.getServer().getPluginManager().getPlugin("TAB") != null;
+			
+			// Show warning about team conflicts
+			this.getLogger().warning("[Collision Flag] The disable-collision flag uses Minecraft teams.");
+			this.getLogger().warning("[Collision Flag] Using this flag with plugins that manage teams may cause conflicts!");
+			this.getLogger().warning("[Collision Flag] Do NOT use the disable-collision flag if you have these plugins installed.");
+
+      // Show supported plugins with team integration
+			this.getLogger().warning("[Collision Flag] Supported plugins with (1): TAB");
+
+			
+			if (this.getServer().getScoreboardManager() == null || 
+			    this.getServer().getScoreboardManager().getMainScoreboard() == null)
+			{
+				this.collisionFlagEnabled = false;
+				this.getLogger().warning("[Collision Flag] Scoreboard not available - collision feature will be disabled");
+			}
+			else
+			{
+				// Scoreboard is available, initialize the collision handler
+				try
+				{
+					this.collisionPacketHandler = new dev.tins.worldguardextraflagsplus.collision.TeamCollisionHandler(this);
+					
+					// Initialize the collision handler
+					if (!this.collisionPacketHandler.initialize())
+					{
+						this.getLogger().warning("[Collision Flag] Failed to initialize collision handler");
+						this.getLogger().warning("[Collision Flag] Collision feature will be disabled");
+						this.collisionFlagEnabled = false;
+						this.collisionPacketHandler = null;
+					}
+					else
+					{
+						this.getLogger().info("[Collision Flag] Initialized " + this.collisionPacketHandler.getLibraryName() + " collision handler");
+						
+						// Register collision handler if initialized successfully
+						this.sessionManager.registerHandler(CollisionFlagHandler.FACTORY(), null);
+					}
+				}
+				catch (Throwable e)
+				{
+					this.getLogger().warning("[Collision Flag] Failed to register collision handler: " + 
+						(e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
+					this.getLogger().warning("[Collision Flag] Collision feature will be disabled");
+					this.collisionFlagEnabled = false;
+					if (this.collisionPacketHandler != null)
+					{
+						this.collisionPacketHandler.cleanup();
+						this.collisionPacketHandler = null;
+					}
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			this.collisionFlagEnabled = false;
+			this.getLogger().warning("[Collision Flag] Failed to check scoreboard availability: " + 
+				(e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
+			this.getLogger().warning("[Collision Flag] Collision feature will be disabled");
+		}
 
 		this.getServer().getPluginManager().registerEvents(new PlayerListener(this, this.worldGuardPlugin, this.regionContainer, this.sessionManager), this);
 		this.getServer().getPluginManager().registerEvents(new BlockListener(this.worldGuardPlugin, this.regionContainer, this.sessionManager), this);
@@ -344,6 +423,58 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 		// This method is kept for compatibility but no longer performs in-memory migration.
 	}
 	
+	/**
+	 * Cleans up the old collision team from the previous team-based implementation.
+	 * This method removes the WGEFP_COLLISION_DISABLED team and all its entries.
+	 * Called once after server load to clean up legacy team-based collision system.
+	 */
+	private void cleanupOldCollisionTeam()
+	{
+		try
+		{
+			org.bukkit.scoreboard.Scoreboard scoreboard = org.bukkit.Bukkit.getScoreboardManager().getMainScoreboard();
+			if (scoreboard == null)
+			{
+				return;
+			}
+			
+			org.bukkit.scoreboard.Team team = scoreboard.getTeam("WGEFP_COLLISION_DISABLED");
+			if (team != null)
+			{
+				// Remove all entries from the team first
+				java.util.Set<String> entries = new java.util.HashSet<>(team.getEntries());
+				for (String entry : entries)
+				{
+					try
+					{
+						team.removeEntry(entry);
+					}
+					catch (Exception e)
+					{
+						// Ignore errors when removing entries
+					}
+				}
+				
+				// Unregister the team
+				try
+				{
+					team.unregister();
+					this.getLogger().info("[Collision Flag] Cleaned up old collision team from previous implementation");
+				}
+				catch (Exception e)
+				{
+					// Team might already be unregistered, ignore
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			// Silently fail - team cleanup is not critical
+			this.getLogger().fine("[Collision Flag] Could not clean up old collision team: " + 
+				(e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
+		}
+	}
+	
 	private void setupMetrics()
 	{
 		final int bStatsPluginId = 27821;
@@ -384,6 +515,24 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 				updateChecker.checkForUpdates();
 			});
 		});
+	}
+	
+	@Override
+	public void onDisable()
+	{
+		// Cleanup collision handler
+		if (this.collisionPacketHandler != null)
+		{
+			try
+			{
+				this.collisionPacketHandler.cleanup();
+			}
+			catch (Exception e)
+			{
+				this.getLogger().warning("[Collision Flag] Error during cleanup: " + 
+					(e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
+			}
+		}
 	}
 	
 	private static Set<Flag<?>> getPluginFlags()

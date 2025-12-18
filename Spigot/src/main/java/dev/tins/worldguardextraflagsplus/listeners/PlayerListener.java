@@ -290,7 +290,7 @@ public class PlayerListener implements Listener
 					this.sessionManager.get(localPlayer).getHandler(dev.tins.worldguardextraflagsplus.wg.handlers.CollisionFlagHandler.class);
 				if (handler != null)
 				{
-					handler.applyCollisionSetting(player, collisionValue);
+					handler.applyCollisionSettingPublic(player, collisionValue);
 				}
 			});
 		}
@@ -321,7 +321,7 @@ public class PlayerListener implements Listener
 					this.sessionManager.get(localPlayer).getHandler(dev.tins.worldguardextraflagsplus.wg.handlers.CollisionFlagHandler.class);
 				if (handler != null)
 				{
-					handler.applyCollisionSetting(player, collisionValue);
+					handler.applyCollisionSettingPublic(player, collisionValue);
 				}
 			});
 		}

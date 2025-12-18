@@ -12,138 +12,12 @@ import com.sk89q.worldguard.session.MoveType;
 import dev.tins.worldguardextraflagsplus.flags.Flags;
 import dev.tins.worldguardextraflagsplus.wg.WorldGuardUtils;
 import lombok.Getter;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
 
 public class CollisionFlagHandler extends FlagValueChangeHandler<Boolean>
 {
-	// Unique team name to avoid conflicts with other plugins
-	// Using plugin prefix and descriptive name to minimize collision risk
-	private static final String TEAM_NAME = "WGEFP_COLLISION_DISABLED";
-	private static volatile boolean teamInitialized = false;
-	private static volatile boolean collisionEnabled = false; // Whether collision flag is functional
-	private static final Object teamInitLock = new Object();
-	
 	@Getter
 	private Boolean currentValue;
-	
-	/**
-	 * Initialize the collision team during plugin startup.
-	 * Tries to create the team on the main scoreboard.
-	 * If that fails (Folia), the collision flag will be disabled.
-	 * This should be called from the plugin's onEnable() method.
-	 */
-	public static void initializeTeam()
-	{
-		synchronized (teamInitLock)
-		{
-			if (teamInitialized)
-			{
-				return;
-			}
-			
-			try
-			{
-				Scoreboard scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
-				if (scoreboard == null)
-				{
-					Bukkit.getLogger().warning("[WorldGuardExtraFlagsPlus] Main scoreboard is null, collision flag will be disabled.");
-					collisionEnabled = false;
-					teamInitialized = true;
-					return;
-				}
-				
-				// Check if team already exists (might be pre-created)
-				Team team = scoreboard.getTeam(TEAM_NAME);
-				if (team == null)
-				{
-					// Try to create it - will fail in Folia but might work in Paper/Spigot
-					try
-					{
-						team = scoreboard.registerNewTeam(TEAM_NAME);
-						team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
-						collisionEnabled = true;
-						Bukkit.getLogger().info("[WorldGuardExtraFlagsPlus] Collision team created on main scoreboard.");
-					}
-					catch (UnsupportedOperationException e)
-					{
-						// Folia doesn't support team registration on main scoreboard
-						// Disable the collision flag feature on Folia
-						collisionEnabled = false;
-						Bukkit.getLogger().warning("[WorldGuardExtraFlagsPlus] Main scoreboard team creation not supported (Folia detected).");
-						Bukkit.getLogger().warning("[WorldGuardExtraFlagsPlus] The 'disable-collision' flag is not supported on Folia and will be disabled.");
-					}
-				}
-				else
-				{
-					// Team already exists, just set the collision rule
-					team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
-					collisionEnabled = true;
-					Bukkit.getLogger().info("[WorldGuardExtraFlagsPlus] Collision team found on main scoreboard.");
-				}
-				
-				teamInitialized = true;
-			}
-			catch (Exception e)
-			{
-				Bukkit.getLogger().warning("[WorldGuardExtraFlagsPlus] Failed to initialize collision team: " + 
-					(e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
-				collisionEnabled = false;
-				teamInitialized = true;
-			}
-		}
-	}
-	
-	/**
-	 * Check if collision flag is enabled and team is available.
-	 * Returns true only if collision feature is functional.
-	 */
-	private static boolean isCollisionEnabled()
-	{
-		if (!teamInitialized)
-		{
-			// Team not initialized yet, try to initialize now
-			initializeTeam();
-		}
-		
-		return collisionEnabled;
-	}
-	
-	/**
-	 * Get the collision team from main scoreboard.
-	 * Returns null if not available.
-	 */
-	private static Team getCollisionTeam()
-	{
-		if (!isCollisionEnabled())
-		{
-			return null;
-		}
-		
-		try
-		{
-			Scoreboard scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
-			if (scoreboard == null)
-			{
-				return null;
-			}
-			
-			Team team = scoreboard.getTeam(TEAM_NAME);
-			if (team != null)
-			{
-				// Ensure collision rule is set
-				team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
-			}
-			
-			return team;
-		}
-		catch (Exception e)
-		{
-			return null;
-		}
-	}
 	
 	public static final Factory FACTORY()
 	{
@@ -189,7 +63,7 @@ public class CollisionFlagHandler extends FlagValueChangeHandler<Boolean>
 		Player bukkitPlayer = ((BukkitPlayer) player).getPlayer();
 		
 		// Don't schedule tasks during shutdown
-		if (!WorldGuardUtils.isPluginEnabled() || !bukkitPlayer.isOnline())
+		if (!WorldGuardUtils.isPluginEnabled() || bukkitPlayer == null || !bukkitPlayer.isOnline())
 		{
 			return;
 		}
@@ -197,20 +71,12 @@ public class CollisionFlagHandler extends FlagValueChangeHandler<Boolean>
 		// Check if player has bypass
 		if (this.getSession().getManager().hasBypass(player, world))
 		{
-			// Remove from collision team if has bypass
-			if (bukkitPlayer == null || !bukkitPlayer.isOnline())
-			{
-				return;
-			}
-			String playerName = bukkitPlayer.getName();
-			java.util.UUID playerUUID = bukkitPlayer.getUniqueId();
-			
-			// Scoreboard operations need entity thread in Folia
+			// Restore collision if has bypass
 			WorldGuardUtils.getScheduler().runAtEntity(bukkitPlayer, task -> {
-				Player onlinePlayer = org.bukkit.Bukkit.getPlayer(playerUUID);
+				Player onlinePlayer = org.bukkit.Bukkit.getPlayer(bukkitPlayer.getUniqueId());
 				if (onlinePlayer != null && onlinePlayer.isOnline())
 				{
-					removeFromCollisionTeam(onlinePlayer, playerName);
+					applyCollisionSetting(onlinePlayer, false);
 				}
 			});
 			return;
@@ -219,185 +85,99 @@ public class CollisionFlagHandler extends FlagValueChangeHandler<Boolean>
 		// Store current value
 		this.currentValue = disableCollision;
 		
-		// Capture player name before scheduling (important for Folia thread safety)
-		if (bukkitPlayer == null || !bukkitPlayer.isOnline())
-		{
-			return;
-		}
-		String playerName = bukkitPlayer.getName();
+		// Capture player UUID before scheduling (important for Folia thread safety)
 		java.util.UUID playerUUID = bukkitPlayer.getUniqueId();
 		
-		// Check if collision feature is enabled
-		if (!isCollisionEnabled())
-		{
-			// Collision flag is not supported (e.g., on Folia)
-			return;
-		}
-		
-		// In Folia, we need to run on entity thread to access scoreboard
+		// Apply collision setting using packet handler
 		WorldGuardUtils.getScheduler().runAtEntity(bukkitPlayer, task -> {
-			// Get player by UUID (safer than using the object directly in Folia)
 			Player onlinePlayer = org.bukkit.Bukkit.getPlayer(playerUUID);
 			if (onlinePlayer == null || !onlinePlayer.isOnline())
 			{
 				return;
 			}
 			
-			if (disableCollision != null && disableCollision)
-			{
-				// Add to collision-disabled team
-				addToCollisionTeam(onlinePlayer, playerName);
-			}
-			else
-			{
-				// Remove from collision-disabled team
-				removeFromCollisionTeam(onlinePlayer, playerName);
-			}
+			applyCollisionSetting(onlinePlayer, disableCollision);
 		});
 	}
 	
 	/**
-	 * Adds player to collision-disabled team.
-	 * Only works if collision feature is enabled (team exists on main scoreboard).
-	 * Handles cases where player might be on a different team.
+	 * Apply collision setting using packet handler.
+	 * If disableCollision is true, collision is disabled. If false or null, collision is enabled.
+	 * Uses reflection to access Spigot module classes (WG module can't directly depend on Spigot module).
 	 */
-	private void addToCollisionTeam(Player player, String playerName)
+	private void applyCollisionSetting(Player player, Boolean disableCollision)
 	{
 		if (player == null || !player.isOnline())
 		{
 			return;
 		}
 		
-		if (playerName == null || playerName.isEmpty())
-		{
-			return;
-		}
-		
-		Team team = getCollisionTeam();
-		if (team == null)
-		{
-			// Team not available, collision feature is disabled
-			return;
-		}
-		
 		try
 		{
-			// Check if player is already on this team
-			if (team.hasEntry(playerName))
+			// Use reflection to access plugin class from Spigot module
+			Class<?> pluginClass = Class.forName("dev.tins.worldguardextraflagsplus.WorldGuardExtraFlagsPlusPlugin");
+			java.lang.reflect.Method getPluginMethod = pluginClass.getMethod("getPlugin");
+			Object plugin = getPluginMethod.invoke(null);
+			
+			if (plugin == null)
 			{
-				// Player is already on the team, just ensure collision rule is set
-				team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
+				org.bukkit.Bukkit.getLogger().warning("[Collision] Plugin instance is null!");
 				return;
 			}
 			
-			// Always re-apply collision rule to ensure it's correct
-			// (defensive: in case another plugin modified it)
-			team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
+			// Get packet handler from plugin using reflection
+			java.lang.reflect.Method getPacketHandlerMethod = pluginClass.getMethod("getCollisionPacketHandler");
+			Object packetHandler = getPacketHandlerMethod.invoke(plugin);
 			
-			// Add player to team
-			team.addEntry(playerName);
+			if (packetHandler == null)
+			{
+				org.bukkit.Bukkit.getLogger().warning("[Collision] Packet handler is null - collision feature is disabled");
+				return;
+			}
+			
+			// Call appropriate method on packet handler
+			Class<?> handlerClass = packetHandler.getClass();
+			if (disableCollision != null && disableCollision)
+			{
+				// Disable collision
+				java.lang.reflect.Method disableMethod = handlerClass.getMethod("disableCollision", Player.class);
+				disableMethod.invoke(packetHandler, player);
+			}
+			else
+			{
+				// Enable collision (restore normal collision)
+				java.lang.reflect.Method enableMethod = handlerClass.getMethod("enableCollision", Player.class);
+				enableMethod.invoke(packetHandler, player);
+			}
 		}
-		catch (IllegalStateException e)
+		catch (ClassNotFoundException e)
 		{
-			// Player might be on another team - this is okay, we'll try to handle it
-			// Check if they're already on our team (race condition)
-			try
-			{
-				if (team.hasEntry(playerName))
-				{
-					// They're already on our team, just ensure collision rule is set
-					team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
-				}
-				else
-				{
-					// Player is on a different team - log but don't fail
-					// The collision might not work for this player, but we won't crash
-					org.bukkit.Bukkit.getLogger().fine("[WorldGuardExtraFlagsPlus] Player " + playerName + 
-						" is on a different team, cannot add to collision team.");
-				}
-			}
-			catch (Exception e2)
-			{
-				// Ignore secondary errors
-			}
+			org.bukkit.Bukkit.getLogger().warning("[Collision] Plugin class not found - Spigot module not loaded: " + e.getMessage());
+		}
+		catch (NoSuchMethodException e)
+		{
+			org.bukkit.Bukkit.getLogger().warning("[Collision] Method not found - API mismatch: " + 
+				(e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
 		}
 		catch (Exception e)
 		{
-			// Log error for debugging
-			org.bukkit.Bukkit.getLogger().warning("[WorldGuardExtraFlagsPlus] Failed to add player to collision team: " + 
+			org.bukkit.Bukkit.getLogger().warning("[Collision] Failed to apply collision setting: " + 
 				(e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
+			e.printStackTrace();
 		}
 	}
 	
 	/**
-	 * Public method to manually apply collision settings
-	 * Useful for ensuring collision is applied on player join
+	 * Public method to manually apply collision settings.
+	 * Useful for ensuring collision is applied on player join.
 	 */
-	public void applyCollisionSetting(Player player, Boolean disableCollision)
+	public void applyCollisionSettingPublic(Player player, Boolean disableCollision)
 	{
 		if (player == null || !player.isOnline())
 		{
 			return;
 		}
-		String playerName = player.getName();
 		
-		if (disableCollision != null && disableCollision)
-		{
-			addToCollisionTeam(player, playerName);
-		}
-		else
-		{
-			removeFromCollisionTeam(player, playerName);
-		}
-	}
-	
-	/**
-	 * Removes player from collision-disabled team.
-	 * Only works if collision feature is enabled (team exists on main scoreboard).
-	 * Handles cases where player might be on a different team or not on any team.
-	 * This method is defensive and will not throw exceptions that could cause client disconnections.
-	 */
-	private void removeFromCollisionTeam(Player player, String playerName)
-	{
-		if (player == null)
-		{
-			return;
-		}
-		
-		if (playerName == null || playerName.isEmpty())
-		{
-			return;
-		}
-		
-		Team team = getCollisionTeam();
-		if (team == null)
-		{
-			// Team not available, collision feature is disabled
-			return;
-		}
-		
-		// Check if player is on this team before trying to remove
-		// This prevents sending invalid packets to the client
-		try
-		{
-			if (team.hasEntry(playerName))
-			{
-				team.removeEntry(playerName);
-			}
-		}
-		catch (IllegalStateException e)
-		{
-			// Player is either on another team or not on any team
-			// This can happen due to race conditions between our check and the removal
-			// Silently ignore - the player is not on our team, which is what we want
-			// This exception is caught on the server side, preventing it from being sent to the client
-		}
-		catch (Exception e)
-		{
-			// Log other errors for debugging (but don't let them propagate)
-			org.bukkit.Bukkit.getLogger().warning("[WorldGuardExtraFlagsPlus] Failed to remove player from collision team: " + 
-				(e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
-		}
+		applyCollisionSetting(player, disableCollision);
 	}
 }
-

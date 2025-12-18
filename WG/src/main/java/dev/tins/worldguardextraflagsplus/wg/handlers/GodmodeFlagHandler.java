@@ -127,7 +127,7 @@ public class GodmodeFlagHandler extends FlagValueChangeHandler<State>
 			{
 				Session session = this.getSession();
 				if (session != null)
-				{
+		{
 					Class<?> godModeClass = Class.forName("com.sk89q.worldguard.session.handler.GodMode");
 					java.lang.reflect.Method getHandlerMethod = session.getClass().getMethod("getHandler", Class.class);
 					Object godModeHandler = getHandlerMethod.invoke(session, godModeClass);
@@ -243,7 +243,7 @@ public class GodmodeFlagHandler extends FlagValueChangeHandler<State>
 								{
 									java.lang.reflect.Method setGodModeEnabledMethod = userClass.getMethod("setGodModeEnabled", boolean.class);
 									setGodModeEnabledMethod.invoke(essentialsUser, true);
-								}
+		}
 							}
 						}
 						catch (Exception e)
