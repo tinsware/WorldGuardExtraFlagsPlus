@@ -50,12 +50,6 @@ godmode / blocked-effects
 respawn-location / worldedit / give-effects  
 fly / play-sounds / frostwalker / nether-portals / glide (elytra-blocker)
 chunk-unload / item-durability / join-location
-disable-completely / entry-min-level / entry-max-level
-villager-trade / disable-collision
-allow-block-place / deny-block-place / allow-block-break / deny-block-break
-deny-item-drops / deny-item-pickup
-permit-workbenches
-inventory-craft
 ```
 
 **New in Plus:**
