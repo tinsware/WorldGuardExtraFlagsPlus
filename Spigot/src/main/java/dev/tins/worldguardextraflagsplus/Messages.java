@@ -1,29 +1,47 @@
 package dev.tins.worldguardextraflagsplus;
 
+import de.exlll.configlib.NameFormatters;
+import de.exlll.configlib.YamlConfigurationProperties;
+import de.exlll.configlib.YamlConfigurations;
+import dev.tins.worldguardextraflagsplus.config.PluginMessages;
 import org.bukkit.ChatColor;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
+/**
+ * Messages manager using ConfigLib.
+ * Maintains static methods for backward compatibility.
+ * Preserves special features: empty string = disabled, placeholders, cooldown.
+ */
 public class Messages
 {
 	private static JavaPlugin plugin;
-	private static FileConfiguration messages;
-	private static File messagesFile;
+	private static PluginMessages messages;
+	private static Path messagesFile;
 	private static int messageCooldownSeconds;
 	private static final ConcurrentHashMap<UUID, Long> messageCooldowns = new ConcurrentHashMap<>();
-
+	
+	// Map of kebab-case keys to message values (for getMessage() compatibility)
+	private static final Map<String, String> messageMap = new HashMap<>();
+	
+	// ConfigLib properties with kebab-case formatter
+	private static final YamlConfigurationProperties PROPERTIES = YamlConfigurationProperties.newBuilder()
+		.setNameFormatter(NameFormatters.LOWER_KEBAB_CASE)
+		.header(PluginMessages.MESSAGES_HEADER)
+		.build();
+	
 	public static void initialize(JavaPlugin plugin)
 	{
 		Messages.plugin = plugin;
@@ -32,7 +50,7 @@ public class Messages
 		File worldGuardDataFolder = plugin.getServer().getPluginManager().getPlugin("WorldGuard").getDataFolder();
 		
 		// Create messages-wgefp.yml in WorldGuard folder
-		messagesFile = new File(worldGuardDataFolder, "messages-wgefp.yml");
+		messagesFile = worldGuardDataFolder.toPath().resolve("messages-wgefp.yml");
 		
 		// Handle old messages.yml file migration/deletion
 		File oldMessagesFile = new File(worldGuardDataFolder, "messages.yml");
@@ -40,10 +58,9 @@ public class Messages
 		{
 			try
 			{
-				FileConfiguration oldConfig = YamlConfiguration.loadConfiguration(oldMessagesFile);
+				YamlConfiguration oldConfig = YamlConfiguration.loadConfiguration(oldMessagesFile);
 				if (oldConfig.contains("permit-completely-blocked"))
 				{
-					// Old file contains the deprecated message key, delete it
 					if (oldMessagesFile.delete())
 					{
 						plugin.getLogger().info("Deleted old messages.yml file (migrated to messages-wgefp.yml)");
@@ -60,355 +77,67 @@ public class Messages
 			}
 		}
 		
-		// Copy default messages-wgefp.yml if it doesn't exist
-		if (!messagesFile.exists())
-		{
-			saveDefaultMessages(worldGuardDataFolder);
-		}
-		
-		// Load messages-wgefp.yml
+		// Load messages
 		reloadMessages();
 	}
-
-	private static void saveDefaultMessages(File worldGuardDataFolder)
-	{
-		try
-		{
-			// Ensure WorldGuard folder exists
-			if (!worldGuardDataFolder.exists())
-			{
-				worldGuardDataFolder.mkdirs();
-			}
-			
-			// Check if messages-wgefp.yml already exists in WorldGuard folder
-			if (messagesFile.exists())
-			{
-				// File already exists, don't overwrite it (admin might have customized it)
-				plugin.getLogger().info("messages-wgefp.yml already exists in WorldGuard folder, skipping default copy.");
-				return;
-			}
-			
-			// Load default messages from plugin resources
-			InputStream defaultStream = plugin.getResource("messages-wgefp.yml");
-			if (defaultStream == null)
-			{
-				plugin.getLogger().warning("Default messages-wgefp.yml not found in plugin resources!");
-				return;
-			}
-			
-			// Copy file directly using streams (simpler than loading YAML)
-			java.io.FileOutputStream outputStream = new java.io.FileOutputStream(messagesFile);
-			byte[] buffer = new byte[1024];
-			int length;
-			while ((length = defaultStream.read(buffer)) > 0)
-			{
-				outputStream.write(buffer, 0, length);
-			}
-			outputStream.close();
-			defaultStream.close();
-			
-			plugin.getLogger().info("Created messages-wgefp.yml in WorldGuard folder: " + messagesFile.getAbsolutePath());
-		}
-		catch (Exception e)
-		{
-			plugin.getLogger().log(Level.SEVERE, "Failed to save default messages-wgefp.yml", e);
-		}
-	}
-
+	
 	public static void reloadMessages()
 	{
 		try
 		{
-			// Load file without defaults first to check actual file content
-			YamlConfiguration fileConfig = YamlConfiguration.loadConfiguration(messagesFile);
-			
-			// Load UTF-8 encoding properly
-			InputStream defaultStream = plugin.getResource("messages-wgefp.yml");
-			YamlConfiguration defaultConfig = null;
-			if (defaultStream != null)
+			// Ensure WorldGuard folder exists
+			if (!messagesFile.getParent().toFile().exists())
 			{
-				InputStreamReader reader = new InputStreamReader(defaultStream, StandardCharsets.UTF_8);
-				defaultConfig = YamlConfiguration.loadConfiguration(reader);
+				messagesFile.getParent().toFile().mkdirs();
 			}
 			
-			boolean needsSave = false;
-			String fileContent = null;
-			
-			// Migrate permit-completely-blocked to disable-completely-blocked
-			// Check actual file content, not defaults
-			if (fileConfig.contains("permit-completely-blocked", false) && !fileConfig.contains("disable-completely-blocked", false))
+			// Pre-migration: migrate permit-completely-blocked to disable-completely-blocked
+			// Do this BEFORE ConfigLib loads to preserve user values
+			if (messagesFile.toFile().exists())
 			{
-				// Read file as text to preserve exact formatting
-				fileContent = new String(Files.readAllBytes(messagesFile.toPath()), StandardCharsets.UTF_8);
-				String originalContent = fileContent;
-				
-				// Replace permit-completely-blocked with disable-completely-blocked (preserve formatting)
-				fileContent = fileContent.replaceAll("(?m)^(\\s*)#?\\s*permit-completely-blocked\\s*:", "$1disable-completely-blocked:");
-				fileContent = fileContent.replaceAll("(?m)^(\\s*)permit-completely-blocked\\s*:", "$1disable-completely-blocked:");
-				
-				// Also update comment if it exists
-				fileContent = fileContent.replaceAll("(?m)^(\\s*)#\\s*Permit completely flag message", "$1# Disable completely flag message");
-				
-				if (!fileContent.equals(originalContent))
+				try
 				{
-					needsSave = true;
-					plugin.getLogger().info("Migrated 'permit-completely-blocked' to 'disable-completely-blocked' in messages-wgefp.yml");
-				}
-			}
-			
-			// Add inventory-craft-blocked if missing (check actual file, not defaults)
-			if (!fileConfig.contains("inventory-craft-blocked", false))
-			{
-				// Read file as text if not already read
-				if (fileContent == null)
-				{
-					fileContent = new String(Files.readAllBytes(messagesFile.toPath()), StandardCharsets.UTF_8);
-				}
-				String originalContent = fileContent;
-				
-				String defaultValue = defaultConfig != null ? defaultConfig.getString("inventory-craft-blocked") : "&cHey! &7You can not craft items in your inventory here!";
-				if (defaultValue != null)
-				{
-					// Detect quote style from existing messages (prefer double quotes, fallback to single)
-					String quoteChar = "\"";
-					if (fileContent.contains("permit-workbenches-blocked:") || fileContent.contains("disable-completely-blocked:"))
-					{
-						// Check what quote style is used
-						String sampleLine = fileContent.contains("permit-workbenches-blocked:") 
-							? fileContent.substring(fileContent.indexOf("permit-workbenches-blocked:"))
-							: fileContent.substring(fileContent.indexOf("disable-completely-blocked:"));
-						int firstQuote = sampleLine.indexOf('\'');
-						int firstDoubleQuote = sampleLine.indexOf('"');
-						if (firstQuote != -1 && (firstDoubleQuote == -1 || firstQuote < firstDoubleQuote))
-						{
-							quoteChar = "'";
-						}
-					}
+					String fileContent = new String(Files.readAllBytes(messagesFile), StandardCharsets.UTF_8);
+					String originalContent = fileContent;
 					
-					// Find the last message entry and add the new one after it
-					// Look for the last message line (permit-workbenches-blocked or disable-completely-blocked)
-					if (fileContent.contains("permit-workbenches-blocked:") || fileContent.contains("disable-completely-blocked:"))
+					// Check if file contains old key but not new key
+					if (fileContent.contains("permit-completely-blocked:") && !fileContent.contains("disable-completely-blocked:"))
 					{
-						// Add after the last message entry
-						String newEntry = "\n# Inventory craft flag message\ninventory-craft-blocked: " + quoteChar + defaultValue + quoteChar;
+						// Replace permit-completely-blocked with disable-completely-blocked (preserve formatting)
+						fileContent = fileContent.replaceAll("(?m)^(\\s*)#?\\s*permit-completely-blocked\\s*:", "$1disable-completely-blocked:");
+						fileContent = fileContent.replaceAll("(?m)^(\\s*)permit-completely-blocked\\s*:", "$1disable-completely-blocked:");
 						
-						// Find the last occurrence of a message entry and add after it
-						int lastIndex = Math.max(
-							fileContent.lastIndexOf("permit-workbenches-blocked:"),
-							fileContent.lastIndexOf("disable-completely-blocked:")
-						);
+						// Also update comment if it exists
+						fileContent = fileContent.replaceAll("(?m)^(\\s*)#\\s*Permit completely flag message", "$1# Disable completely flag message");
 						
-						if (lastIndex != -1)
+						if (!fileContent.equals(originalContent))
 						{
-							// Find the end of that line (handle wrapped lines by finding the next non-indented line or end of file)
-							int lineEnd = fileContent.indexOf('\n', lastIndex);
-							if (lineEnd == -1)
-							{
-								lineEnd = fileContent.length();
-							}
-							else
-							{
-								lineEnd++; // Include the newline
-								// Skip any wrapped continuation lines (lines that start with spaces after the value)
-								while (lineEnd < fileContent.length())
-								{
-									int nextLineStart = lineEnd;
-									// Skip whitespace
-									while (nextLineStart < fileContent.length() && (fileContent.charAt(nextLineStart) == ' ' || fileContent.charAt(nextLineStart) == '\t'))
-									{
-										nextLineStart++;
-									}
-									// If next line starts with a quote or is empty/comment, it's a continuation
-									if (nextLineStart < fileContent.length() && 
-										(fileContent.charAt(nextLineStart) == '"' || 
-										 fileContent.charAt(nextLineStart) == '\'' ||
-										 fileContent.charAt(nextLineStart) == '#' ||
-										 fileContent.charAt(nextLineStart) == '\n' ||
-										 fileContent.charAt(nextLineStart) == '\r'))
-									{
-										// This is a continuation line, skip it
-										int nextNewline = fileContent.indexOf('\n', nextLineStart);
-										if (nextNewline == -1)
-										{
-											lineEnd = fileContent.length();
-											break;
-										}
-										lineEnd = nextNewline + 1;
-									}
-									else
-									{
-										// This is a new key, stop here
-										break;
-									}
-								}
-							}
-							
-							// Insert the new entry
-							fileContent = fileContent.substring(0, lineEnd) + newEntry + fileContent.substring(lineEnd);
+							Files.write(messagesFile, fileContent.getBytes(StandardCharsets.UTF_8));
+							plugin.getLogger().info("Migrated 'permit-completely-blocked' to 'disable-completely-blocked' in messages-wgefp.yml");
 						}
-						else
-						{
-							// Fallback: append at the end
-							fileContent = fileContent + newEntry;
-						}
-					}
-					else
-					{
-						// Fallback: append at the end
-						fileContent = fileContent + "\n# Inventory craft flag message\ninventory-craft-blocked: " + quoteChar + defaultValue + quoteChar;
-					}
-					
-					if (!fileContent.equals(originalContent))
-					{
-						needsSave = true;
-						plugin.getLogger().info("Added missing 'inventory-craft-blocked' key to messages-wgefp.yml");
 					}
 				}
-			}
-			
-			// Add godmode-disabled if missing (check actual file, not defaults)
-			if (!fileConfig.contains("godmode-disabled", false))
-			{
-				// Read file as text if not already read
-				if (fileContent == null)
+				catch (Exception e)
 				{
-					fileContent = new String(Files.readAllBytes(messagesFile.toPath()), StandardCharsets.UTF_8);
-				}
-				String originalContent = fileContent;
-				
-				String defaultValue = defaultConfig != null ? defaultConfig.getString("godmode-disabled") : "&cHey! &7Godmode disabled in this region!";
-				if (defaultValue != null)
-				{
-					// Detect quote style from existing messages (prefer double quotes, fallback to single)
-					String quoteChar = "\"";
-					if (fileContent.contains("inventory-craft-blocked:") || fileContent.contains("permit-workbenches-blocked:") || fileContent.contains("disable-completely-blocked:"))
-					{
-						// Check what quote style is used
-						String sampleLine = "";
-						if (fileContent.contains("inventory-craft-blocked:"))
-						{
-							sampleLine = fileContent.substring(fileContent.indexOf("inventory-craft-blocked:"));
-						}
-						else if (fileContent.contains("permit-workbenches-blocked:"))
-						{
-							sampleLine = fileContent.substring(fileContent.indexOf("permit-workbenches-blocked:"));
-						}
-						else if (fileContent.contains("disable-completely-blocked:"))
-						{
-							sampleLine = fileContent.substring(fileContent.indexOf("disable-completely-blocked:"));
-						}
-						
-						if (!sampleLine.isEmpty())
-						{
-							int firstQuote = sampleLine.indexOf('\'');
-							int firstDoubleQuote = sampleLine.indexOf('"');
-							if (firstQuote != -1 && (firstDoubleQuote == -1 || firstQuote < firstDoubleQuote))
-							{
-								quoteChar = "'";
-							}
-						}
-					}
-					
-					// Find the last message entry and add the new one after it
-					// Look for the last message line
-					if (fileContent.contains("inventory-craft-blocked:") || fileContent.contains("permit-workbenches-blocked:") || fileContent.contains("disable-completely-blocked:"))
-					{
-						// Add after the last message entry
-						String newEntry = "\n# Godmode disabled message (extra plugins and worldguard)\ngodmode-disabled: " + quoteChar + defaultValue + quoteChar;
-						
-						// Find the last occurrence of a message entry and add after it
-						int lastIndex = Math.max(
-							Math.max(
-								fileContent.lastIndexOf("inventory-craft-blocked:"),
-								fileContent.lastIndexOf("permit-workbenches-blocked:")
-							),
-							fileContent.lastIndexOf("disable-completely-blocked:")
-						);
-						
-						if (lastIndex != -1)
-						{
-							// Find the end of that line (handle wrapped lines by finding the next non-indented line or end of file)
-							int lineEnd = fileContent.indexOf('\n', lastIndex);
-							if (lineEnd == -1)
-							{
-								lineEnd = fileContent.length();
-							}
-							else
-							{
-								lineEnd++; // Include the newline
-								// Skip any wrapped continuation lines (lines that start with spaces after the value)
-								while (lineEnd < fileContent.length())
-								{
-									int nextLineStart = lineEnd;
-									// Skip whitespace
-									while (nextLineStart < fileContent.length() && (fileContent.charAt(nextLineStart) == ' ' || fileContent.charAt(nextLineStart) == '\t'))
-									{
-										nextLineStart++;
-									}
-									// If next line starts with a quote or is empty/comment, it's a continuation
-									if (nextLineStart < fileContent.length() && 
-										(fileContent.charAt(nextLineStart) == '"' || 
-										 fileContent.charAt(nextLineStart) == '\'' ||
-										 fileContent.charAt(nextLineStart) == '#' ||
-										 fileContent.charAt(nextLineStart) == '\n' ||
-										 fileContent.charAt(nextLineStart) == '\r'))
-									{
-										// This is a continuation line, skip it
-										int nextNewline = fileContent.indexOf('\n', nextLineStart);
-										if (nextNewline == -1)
-										{
-											lineEnd = fileContent.length();
-											break;
-										}
-										lineEnd = nextNewline + 1;
-									}
-									else
-									{
-										// This is a new key, stop here
-										break;
-									}
-								}
-							}
-							
-							// Insert the new entry
-							fileContent = fileContent.substring(0, lineEnd) + newEntry + fileContent.substring(lineEnd);
-						}
-						else
-						{
-							// Fallback: append at the end
-							fileContent = fileContent + newEntry;
-						}
-					}
-					else
-					{
-						// Fallback: append at the end
-						fileContent = fileContent + "\n# Godmode disabled message (extra plugins and worldguard)\ngodmode-disabled: " + quoteChar + defaultValue + quoteChar;
-					}
-					
-					if (!fileContent.equals(originalContent))
-					{
-						needsSave = true;
-						plugin.getLogger().info("Added missing 'godmode-disabled' key to messages-wgefp.yml");
-					}
+					plugin.getLogger().log(Level.WARNING, "Error during pre-migration: " + e.getMessage(), e);
 				}
 			}
 			
-			// Save if changes were made (using text-based save to preserve formatting)
-			if (needsSave && fileContent != null)
-			{
-				Files.write(messagesFile.toPath(), fileContent.getBytes(StandardCharsets.UTF_8), StandardOpenOption.TRUNCATE_EXISTING);
-				plugin.getLogger().info("Updated messages-wgefp.yml with new keys");
-			}
+			// Load or update messages using ConfigLib
+			messages = YamlConfigurations.update(messagesFile, PluginMessages.class, PROPERTIES);
 			
-			// Now load with defaults for actual use
-			messages = YamlConfiguration.loadConfiguration(messagesFile);
-			if (defaultConfig != null)
-			{
-				messages.setDefaults(defaultConfig);
-			}
+			// Post-process to fix line wrapping in string values (keep strings on single line)
+			// This must happen AFTER ConfigLib writes, as ConfigLib/SnakeYAML wraps long strings
+			fixLineWrapping(messagesFile);
 			
-			// Load message cooldown (default: 3 seconds, 0 = no cooldown)
-			messageCooldownSeconds = messages.getInt("send-message-cooldown", 3);
+			// Reload the fixed file (use load instead of update to avoid re-writing)
+			messages = YamlConfigurations.load(messagesFile, PluginMessages.class, PROPERTIES);
+			
+			// Build message map for getMessage() compatibility (kebab-case keys)
+			buildMessageMap();
+			
+			// Load message cooldown
+			messageCooldownSeconds = messages.getSendMessageCooldown();
 			if (messageCooldownSeconds < 0)
 			{
 				messageCooldownSeconds = 0;
@@ -417,18 +146,125 @@ public class Messages
 			// Clear cooldowns when reloading messages
 			clearAllCooldowns();
 			
-			plugin.getLogger().info("Loaded messages from: " + messagesFile.getAbsolutePath());
+			plugin.getLogger().info("Loaded messages from: " + messagesFile.toAbsolutePath());
 			plugin.getLogger().info("Message cooldown: " + (messageCooldownSeconds > 0 ? messageCooldownSeconds + " seconds" : "disabled"));
+		}
+		catch (de.exlll.configlib.ConfigurationException e)
+		{
+			// Extract root cause for better error message
+			Throwable cause = e.getCause();
+			String errorMsg = "Invalid YAML in messages-wgefp.yml";
+			
+			// Check if it's a duplicate key exception (using class name since it's shaded)
+			if (cause != null && cause.getClass().getSimpleName().equals("DuplicateKeyException"))
+			{
+				String message = cause.getMessage();
+				if (message != null && message.contains("duplicate key"))
+				{
+					int keyStart = message.indexOf("duplicate key");
+					if (keyStart != -1)
+					{
+						String keyPart = message.substring(keyStart);
+						errorMsg = "Duplicate key found in messages-wgefp.yml: " + keyPart.split("\n")[0].replace("found duplicate key", "").trim();
+					}
+					else
+					{
+						errorMsg = "Duplicate key found in messages-wgefp.yml. Check the file for duplicate entries.";
+					}
+				}
+				else
+				{
+					errorMsg = "Duplicate key found in messages-wgefp.yml. Check the file for duplicate entries.";
+				}
+			}
+			else if (cause != null)
+			{
+				String causeMsg = cause.getMessage();
+				if (causeMsg != null && causeMsg.contains("duplicate key"))
+				{
+					errorMsg = "Duplicate key found in messages-wgefp.yml. Check the file for duplicate entries.";
+				}
+				else
+				{
+					errorMsg = causeMsg != null ? causeMsg : cause.getClass().getSimpleName();
+					if (errorMsg.length() > 100)
+					{
+						errorMsg = errorMsg.substring(0, 100) + "...";
+					}
+				}
+			}
+			
+			plugin.getLogger().severe("CRITICAL: " + errorMsg);
+			plugin.getLogger().severe("File location: " + messagesFile.toAbsolutePath());
+			plugin.getLogger().severe("Disabling plugin. Please fix the YAML file and restart the server.");
+			plugin.getServer().getPluginManager().disablePlugin(plugin);
+			// Use default messages as fallback
+			messages = new PluginMessages();
+			buildMessageMap();
+			messageCooldownSeconds = 3;
 		}
 		catch (Exception e)
 		{
-			plugin.getLogger().log(Level.SEVERE, "Failed to load messages-wgefp.yml", e);
-			// Fallback: use in-memory configuration
-			messages = new YamlConfiguration();
-			messageCooldownSeconds = 3; // Default fallback
+			String errorMsg = e.getMessage();
+			if (errorMsg != null && errorMsg.length() > 100)
+			{
+				errorMsg = errorMsg.substring(0, 100) + "...";
+			}
+			plugin.getLogger().severe("CRITICAL: Failed to load messages-wgefp.yml: " + (errorMsg != null ? errorMsg : e.getClass().getSimpleName()));
+			plugin.getLogger().severe("File location: " + messagesFile.toAbsolutePath());
+			plugin.getLogger().severe("Disabling plugin. Please check the file and restart the server.");
+			plugin.getServer().getPluginManager().disablePlugin(plugin);
+			// Use default messages as fallback
+			messages = new PluginMessages();
+			buildMessageMap();
+			messageCooldownSeconds = 3;
 		}
 	}
-
+	
+	/**
+	 * Builds a map of kebab-case keys to message values for getMessage() compatibility.
+	 * This allows getMessage() to work with kebab-case keys while ConfigLib uses camelCase fields.
+	 */
+	private static void buildMessageMap()
+	{
+		messageMap.clear();
+		
+		if (messages == null)
+		{
+			return;
+		}
+		
+		try
+		{
+			// Get all fields from PluginMessages class
+			Field[] fields = PluginMessages.class.getDeclaredFields();
+			
+			for (Field field : fields)
+			{
+				// Skip static fields and cooldown field
+				if (java.lang.reflect.Modifier.isStatic(field.getModifiers()) || 
+					field.getName().equals("sendMessageCooldown"))
+				{
+					continue;
+				}
+				
+				field.setAccessible(true);
+				Object value = field.get(messages);
+				
+				if (value instanceof String)
+				{
+					// Convert camelCase field name to kebab-case key
+					String kebabKey = NameFormatters.LOWER_KEBAB_CASE.format(field.getName());
+					messageMap.put(kebabKey, (String) value);
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			plugin.getLogger().log(Level.WARNING, "Error building message map: " + e.getMessage(), e);
+		}
+	}
+	
 	/**
 	 * Gets a message from the configuration and translates color codes.
 	 * Supports placeholders: {key} will be replaced with values
@@ -436,7 +272,8 @@ public class Messages
 	 */
 	public static String getMessage(String key, String... replacements)
 	{
-		String message = messages.getString(key, "&cMessage not found: " + key);
+		// Get message from map (kebab-case key)
+		String message = messageMap.getOrDefault(key, "&cMessage not found: " + key);
 		
 		// If message is empty string, return null (message disabled)
 		if (message == null || message.trim().isEmpty())
@@ -456,16 +293,16 @@ public class Messages
 		// Translate color codes
 		return ChatColor.translateAlternateColorCodes('&', message);
 	}
-
+	
 	/**
 	 * Gets a raw message from the configuration without color translation.
 	 * Useful for combining multiple messages.
 	 */
 	public static String getRawMessage(String key)
 	{
-		return messages.getString(key, "");
+		return messageMap.getOrDefault(key, "");
 	}
-
+	
 	/**
 	 * Sends a message to a player with cooldown check.
 	 * If cooldown is enabled and not expired, the message won't be sent.
@@ -511,7 +348,7 @@ public class Messages
 		player.sendMessage(message);
 		return true;
 	}
-
+	
 	/**
 	 * Clears the message cooldown for a specific player.
 	 * Useful for testing or admin commands.
@@ -523,7 +360,7 @@ public class Messages
 			messageCooldowns.remove(player.getUniqueId());
 		}
 	}
-
+	
 	/**
 	 * Clears all message cooldowns.
 	 * Useful when reloading messages.
@@ -532,15 +369,170 @@ public class Messages
 	{
 		messageCooldowns.clear();
 	}
-
+	
+	/**
+	 * Fixes line wrapping in YAML string values to keep them on a single line.
+	 * This prevents ConfigLib/SnakeYAML from wrapping long strings across multiple lines.
+	 * Uses a simple line-by-line parser to detect and fix wrapped strings.
+	 */
+	private static void fixLineWrapping(Path file)
+	{
+		try
+		{
+			String content = new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
+			String[] lines = content.split("\n", -1); // Keep trailing empty lines
+			StringBuilder fixed = new StringBuilder();
+			
+			for (int i = 0; i < lines.length; i++)
+			{
+				String line = lines[i];
+				String trimmed = line.trim();
+				
+				// Skip empty lines and comments
+				if (trimmed.isEmpty() || trimmed.startsWith("#"))
+				{
+					fixed.append(line);
+					if (i < lines.length - 1)
+					{
+						fixed.append("\n");
+					}
+					continue;
+				}
+				
+				// Check if this is a key-value line
+				if (trimmed.contains(":"))
+				{
+					int colonIndex = trimmed.indexOf(':');
+					String key = trimmed.substring(0, colonIndex).trim();
+					String valuePart = trimmed.substring(colonIndex + 1).trim();
+					
+					// Check if value starts with a quote but doesn't end with a quote on the same line
+					boolean startsWithSingleQuote = valuePart.startsWith("'");
+					boolean startsWithDoubleQuote = valuePart.startsWith("\"");
+					boolean endsWithQuote = valuePart.endsWith("'") || valuePart.endsWith("\"");
+					
+					if ((startsWithSingleQuote || startsWithDoubleQuote) && !endsWithQuote)
+					{
+						// This is a wrapped string, collect continuation lines
+						char quoteChar = startsWithSingleQuote ? '\'' : '"';
+						StringBuilder fullValue = new StringBuilder();
+						
+						// Extract the first part (without the opening quote)
+						String firstPart = valuePart.substring(1); // Remove opening quote
+						fullValue.append(firstPart);
+						
+						// Calculate base indent (for continuation lines)
+						int baseIndent = line.length() - line.trim().length();
+						
+						// Look ahead for continuation lines
+						boolean foundClosingQuote = false;
+						int j = i + 1;
+						for (; j < lines.length; j++)
+						{
+							String nextLine = lines[j];
+							String nextTrimmed = nextLine.trim();
+							
+							// Stop if we hit a comment or empty line (not part of the string)
+							if (nextTrimmed.isEmpty() || nextTrimmed.startsWith("#"))
+							{
+								break;
+							}
+							
+							// Check if this line is indented (continuation)
+							int nextIndent = nextLine.length() - nextLine.trim().length();
+							if (nextIndent > baseIndent)
+							{
+								// This is a continuation line
+								String continuation = nextTrimmed;
+								
+								// Check if this line ends with a quote
+								if (continuation.endsWith("'") || continuation.endsWith("\""))
+								{
+									// Remove closing quote and append
+									if (continuation.endsWith("'"))
+									{
+										continuation = continuation.substring(0, continuation.length() - 1);
+									}
+									else if (continuation.endsWith("\""))
+									{
+										continuation = continuation.substring(0, continuation.length() - 1);
+									}
+									fullValue.append(" ").append(continuation);
+									foundClosingQuote = true;
+									i = j; // Skip processed lines
+									break;
+								}
+								else
+								{
+									// Still continuing
+									fullValue.append(" ").append(continuation);
+									i = j; // Skip this line
+								}
+							}
+							else
+							{
+								// Not a continuation, stop
+								break;
+							}
+						}
+						
+						// Clean up the value
+						String finalValue = fullValue.toString().replaceAll("\\s+", " ").trim();
+						
+						// If value contains the quote character, use the other one
+						if (finalValue.contains(String.valueOf(quoteChar)))
+						{
+							quoteChar = (quoteChar == '\'') ? '"' : '\'';
+						}
+						
+						// Write the fixed line
+						// For message keys (root level), there should be no indentation
+						// Use the original line's indentation, but if it's minimal (0-1 spaces), use 0
+						int originalIndent = line.length() - line.trim().length();
+						// Root-level keys should have no indent, so if indent is small, use 0
+						int keyIndent = (originalIndent <= 1) ? 0 : originalIndent;
+						
+						String indent = " ".repeat(keyIndent);
+						fixed.append(indent).append(key).append(": ").append(quoteChar).append(finalValue).append(quoteChar);
+					}
+					else
+					{
+						// Normal line, write as-is
+						fixed.append(line);
+					}
+				}
+				else
+				{
+					// Not a key-value line, write as-is
+					fixed.append(line);
+				}
+				
+				if (i < lines.length - 1)
+				{
+					fixed.append("\n");
+				}
+			}
+			
+			// Write the fixed content back
+			Files.write(file, fixed.toString().getBytes(StandardCharsets.UTF_8));
+		}
+		catch (Exception e)
+		{
+			// Log but don't fail - this is just a formatting fix
+			if (plugin != null)
+			{
+				plugin.getLogger().log(Level.WARNING, "Could not fix line wrapping in messages file: " + e.getMessage(), e);
+			}
+		}
+	}
+	
 	public static File getMessagesFile()
 	{
-		return messagesFile;
+		return messagesFile != null ? messagesFile.toFile() : null;
 	}
-
+	
 	public static int getMessageCooldownSeconds()
 	{
 		return messageCooldownSeconds;
 	}
 }
-

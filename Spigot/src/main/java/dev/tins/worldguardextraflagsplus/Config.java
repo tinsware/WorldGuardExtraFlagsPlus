@@ -1,28 +1,31 @@
 package dev.tins.worldguardextraflagsplus;
 
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
+import de.exlll.configlib.NameFormatters;
+import de.exlll.configlib.YamlConfigurationProperties;
+import de.exlll.configlib.YamlConfigurations;
+import dev.tins.worldguardextraflagsplus.config.PluginConfig;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.Path;
 import java.util.logging.Level;
 
+/**
+ * Configuration manager using ConfigLib.
+ * Maintains static methods for backward compatibility.
+ */
 public class Config
 {
 	private static JavaPlugin plugin;
-	private static FileConfiguration config;
-	private static File configFile;
+	private static PluginConfig config;
+	private static Path configFile;
 	
-	// Config values
-	private static boolean permitWorkbenchBlockPlacementToo = false;
-	private static boolean permitAllIncludesEnderchest = false;
-	private static boolean autoGiveGodmodeRegionLeft = false;
-
+	// ConfigLib properties with kebab-case formatter
+	private static final YamlConfigurationProperties PROPERTIES = YamlConfigurationProperties.newBuilder()
+		.setNameFormatter(NameFormatters.LOWER_KEBAB_CASE)
+		.header(PluginConfig.CONFIG_HEADER)
+		.build();
+	
 	public static void initialize(JavaPlugin plugin)
 	{
 		Config.plugin = plugin;
@@ -31,231 +34,113 @@ public class Config
 		File worldGuardDataFolder = plugin.getServer().getPluginManager().getPlugin("WorldGuard").getDataFolder();
 		
 		// Create config-wgefp.yml in WorldGuard folder
-		configFile = new File(worldGuardDataFolder, "config-wgefp.yml");
+		configFile = worldGuardDataFolder.toPath().resolve("config-wgefp.yml");
 		
-		// Copy default config-wgefp.yml if it doesn't exist
-		if (!configFile.exists())
-		{
-			saveDefaultConfig(worldGuardDataFolder);
-		}
-		
-		// Load config-wgefp.yml
+		// Load config
 		reloadConfig();
 	}
-
-	private static void saveDefaultConfig(File worldGuardDataFolder)
-	{
-		try
-		{
-			// Ensure WorldGuard folder exists
-			if (!worldGuardDataFolder.exists())
-			{
-				worldGuardDataFolder.mkdirs();
-			}
-			
-			// Check if config-wgefp.yml already exists in WorldGuard folder
-			if (configFile.exists())
-			{
-				// File already exists, don't overwrite it (admin might have customized it)
-				plugin.getLogger().info("config-wgefp.yml already exists in WorldGuard folder, skipping default copy.");
-				return;
-			}
-			
-			// Load default config from plugin resources
-			InputStream defaultStream = plugin.getResource("config-wgefp.yml");
-			if (defaultStream == null)
-			{
-				plugin.getLogger().warning("Default config-wgefp.yml not found in plugin resources!");
-				return;
-			}
-			
-			// Copy file directly using streams
-			java.io.FileOutputStream outputStream = new java.io.FileOutputStream(configFile);
-			byte[] buffer = new byte[1024];
-			int length;
-			while ((length = defaultStream.read(buffer)) > 0)
-			{
-				outputStream.write(buffer, 0, length);
-			}
-			outputStream.close();
-			defaultStream.close();
-			
-			plugin.getLogger().info("Created config-wgefp.yml in WorldGuard folder: " + configFile.getAbsolutePath());
-		}
-		catch (Exception e)
-		{
-			plugin.getLogger().log(Level.SEVERE, "Failed to save default config-wgefp.yml", e);
-		}
-	}
-
+	
 	public static void reloadConfig()
 	{
 		try
 		{
-			// Load file without defaults first to check actual file content
-			config = YamlConfiguration.loadConfiguration(configFile);
-			
-			// Load UTF-8 encoding properly
-			InputStream defaultStream = plugin.getResource("config-wgefp.yml");
-			YamlConfiguration defaultConfig = null;
-			if (defaultStream != null)
+			// Ensure WorldGuard folder exists
+			if (!configFile.getParent().toFile().exists())
 			{
-				InputStreamReader reader = new InputStreamReader(defaultStream, StandardCharsets.UTF_8);
-				defaultConfig = YamlConfiguration.loadConfiguration(reader);
-				config.setDefaults(defaultConfig);
+				configFile.getParent().toFile().mkdirs();
 			}
 			
-			// Check if godmode.auto-give-godmode-region-left key exists in actual file
-			boolean needsSave = false;
-			String fileContent = null;
-			if (configFile.exists())
+			// Load or update config using ConfigLib
+			config = YamlConfigurations.update(configFile, PluginConfig.class, PROPERTIES);
+			
+			plugin.getLogger().info("Loaded config from: " + configFile.toAbsolutePath());
+		}
+		catch (de.exlll.configlib.ConfigurationException e)
+		{
+			// Extract root cause for better error message
+			Throwable cause = e.getCause();
+			String errorMsg = "Invalid YAML in config-wgefp.yml";
+			
+			// Check if it's a duplicate key exception (using class name since it's shaded)
+			if (cause != null && cause.getClass().getSimpleName().equals("DuplicateKeyException"))
 			{
-				try
+				String message = cause.getMessage();
+				if (message != null && message.contains("duplicate key"))
 				{
-					fileContent = new String(Files.readAllBytes(configFile.toPath()), StandardCharsets.UTF_8);
-					String originalContent = fileContent;
-					
-					// Check if godmode section exists
-					if (!fileContent.contains("godmode:") || !fileContent.contains("auto-give-godmode-region-left:"))
+					int keyStart = message.indexOf("duplicate key");
+					if (keyStart != -1)
 					{
-						// Add godmode section if missing
-						if (!fileContent.contains("godmode:"))
-						{
-							// Add after permit-workbenches section
-							if (fileContent.contains("permit-all-includes-enderchest:"))
-							{
-								int insertIndex = fileContent.lastIndexOf("permit-all-includes-enderchest:");
-								int lineEnd = fileContent.indexOf('\n', insertIndex);
-								if (lineEnd == -1)
-								{
-									lineEnd = fileContent.length();
-								}
-								else
-								{
-									lineEnd++; // Include the newline
-								}
-								
-								String newSection = "\n\n# Godmode settings\ngodmode:\n  # If true, automatically restore godmode when player leaves a region\n  # Default: false\n  auto-give-godmode-region-left: false";
-								fileContent = fileContent.substring(0, lineEnd) + newSection + fileContent.substring(lineEnd);
-							}
-							else
-							{
-								// Fallback: append at the end
-								fileContent = fileContent + "\n\n# Godmode settings\ngodmode:\n  # If true, automatically restore godmode when player leaves a region\n  # Default: false\n  auto-give-godmode-region-left: false";
-							}
-						}
-						else if (!fileContent.contains("auto-give-godmode-region-left:"))
-						{
-							// godmode section exists but missing the key
-							int godmodeIndex = fileContent.indexOf("godmode:");
-							int lineEnd = fileContent.indexOf('\n', godmodeIndex);
-							if (lineEnd == -1)
-							{
-								lineEnd = fileContent.length();
-							}
-							else
-							{
-								lineEnd++; // Include the newline
-							}
-							
-							// Find the end of the godmode section (next top-level key or end of file)
-							int nextSectionStart = fileContent.length();
-							for (int i = lineEnd; i < fileContent.length(); i++)
-							{
-								char c = fileContent.charAt(i);
-								if (c == '\n' || c == '\r')
-								{
-									// Check if this line starts a new top-level key (no leading spaces)
-									int lineStart = i + 1;
-									while (lineStart < fileContent.length() && (fileContent.charAt(lineStart) == ' ' || fileContent.charAt(lineStart) == '\t'))
-									{
-										lineStart++;
-									}
-									if (lineStart < fileContent.length() && fileContent.charAt(lineStart) != '#' && fileContent.charAt(lineStart) != '\n' && fileContent.charAt(lineStart) != '\r')
-									{
-										// Check if it's a top-level key (no leading spaces/tabs)
-										int checkPos = i + 1;
-										while (checkPos < fileContent.length() && (fileContent.charAt(checkPos) == ' ' || fileContent.charAt(checkPos) == '\t'))
-										{
-											checkPos++;
-										}
-										if (checkPos < fileContent.length() && fileContent.charAt(checkPos) != ' ' && fileContent.charAt(checkPos) != '\t')
-										{
-											nextSectionStart = i + 1;
-											break;
-										}
-									}
-								}
-							}
-							
-							String newKey = "  # If true, automatically restore godmode when player leaves a region\n  # Default: false\n  auto-give-godmode-region-left: false";
-							fileContent = fileContent.substring(0, nextSectionStart) + newKey + "\n" + fileContent.substring(nextSectionStart);
-						}
-						
-						if (!fileContent.equals(originalContent))
-						{
-							needsSave = true;
-							plugin.getLogger().info("Added missing 'godmode.auto-give-godmode-region-left' key to config-wgefp.yml");
-						}
+						String keyPart = message.substring(keyStart);
+						errorMsg = "Duplicate key found in config-wgefp.yml: " + keyPart.split("\n")[0].replace("found duplicate key", "").trim();
+					}
+					else
+					{
+						errorMsg = "Duplicate key found in config-wgefp.yml. Check the file for duplicate entries.";
 					}
 				}
-				catch (Exception e)
+				else
 				{
-					plugin.getLogger().log(Level.WARNING, "Error checking config-wgefp.yml for missing keys: " + e.getMessage(), e);
+					errorMsg = "Duplicate key found in config-wgefp.yml. Check the file for duplicate entries.";
+				}
+			}
+			else if (cause != null)
+			{
+				String causeMsg = cause.getMessage();
+				if (causeMsg != null && causeMsg.contains("duplicate key"))
+				{
+					errorMsg = "Duplicate key found in config-wgefp.yml. Check the file for duplicate entries.";
+				}
+				else
+				{
+					errorMsg = causeMsg != null ? causeMsg : cause.getClass().getSimpleName();
+					if (errorMsg.length() > 100)
+					{
+						errorMsg = errorMsg.substring(0, 100) + "...";
+					}
 				}
 			}
 			
-			// Save if changes were made
-			if (needsSave && fileContent != null)
-			{
-				Files.write(configFile.toPath(), fileContent.getBytes(StandardCharsets.UTF_8), StandardOpenOption.TRUNCATE_EXISTING);
-				plugin.getLogger().info("Updated config-wgefp.yml with new keys");
-			}
-			
-			// Now reload with defaults for actual use
-			config = YamlConfiguration.loadConfiguration(configFile);
-			if (defaultConfig != null)
-			{
-				config.setDefaults(defaultConfig);
-			}
-			
-			// Load permit-workbenches settings
-			permitWorkbenchBlockPlacementToo = config.getBoolean("permit-workbenches.permit-workbench-block-placement-too", false);
-			permitAllIncludesEnderchest = config.getBoolean("permit-workbenches.permit-all-includes-enderchest", false);
-			
-			// Load godmode settings
-			autoGiveGodmodeRegionLeft = config.getBoolean("godmode.auto-give-godmode-region-left", false);
-			
-			plugin.getLogger().info("Loaded config from: " + configFile.getAbsolutePath());
+			plugin.getLogger().severe("CRITICAL: " + errorMsg);
+			plugin.getLogger().severe("File location: " + configFile.toAbsolutePath());
+			plugin.getLogger().severe("Disabling plugin. Please fix the YAML file and restart the server.");
+			plugin.getServer().getPluginManager().disablePlugin(plugin);
+			// Use default config as fallback
+			config = new PluginConfig();
 		}
 		catch (Exception e)
 		{
-			plugin.getLogger().log(Level.SEVERE, "Failed to load config-wgefp.yml", e);
-			// Fallback: use default values
-			permitWorkbenchBlockPlacementToo = false;
-			permitAllIncludesEnderchest = false;
-			autoGiveGodmodeRegionLeft = false;
+			String errorMsg = e.getMessage();
+			if (errorMsg != null && errorMsg.length() > 100)
+			{
+				errorMsg = errorMsg.substring(0, 100) + "...";
+			}
+			plugin.getLogger().severe("CRITICAL: Failed to load config-wgefp.yml: " + (errorMsg != null ? errorMsg : e.getClass().getSimpleName()));
+			plugin.getLogger().severe("File location: " + configFile.toAbsolutePath());
+			plugin.getLogger().severe("Disabling plugin. Please check the file and restart the server.");
+			plugin.getServer().getPluginManager().disablePlugin(plugin);
+			// Use default config as fallback
+			config = new PluginConfig();
 		}
 	}
-
+	
+	// Static getter methods for backward compatibility
 	public static boolean isPermitWorkbenchBlockPlacementToo()
 	{
-		return permitWorkbenchBlockPlacementToo;
+		return config != null ? config.getPermitWorkbenches().isPermitWorkbenchBlockPlacementToo() : false;
 	}
-
+	
 	public static boolean isPermitAllIncludesEnderchest()
 	{
-		return permitAllIncludesEnderchest;
+		return config != null ? config.getPermitWorkbenches().isPermitAllIncludesEnderchest() : false;
 	}
-
+	
 	public static boolean isAutoGiveGodmodeRegionLeft()
 	{
-		return autoGiveGodmodeRegionLeft;
+		return config != null ? config.getGodmode().isAutoGiveGodmodeRegionLeft() : false;
 	}
-
+	
 	public static File getConfigFile()
 	{
-		return configFile;
+		return configFile != null ? configFile.toFile() : null;
 	}
 }
-
