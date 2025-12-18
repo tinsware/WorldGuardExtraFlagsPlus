@@ -2,7 +2,7 @@
 
 An advanced WorldGuard extension that adds over 30+ extra region flags for full control of player behavior, teleportation, and region rules — featuring Folia support, item blocking (Mace, Firework, Wind Charge, Totem), and fully customizable messages.
 
-> 🧱 **Folia Ready** | ⚙️ **Custom Messages** | 🪓 **Permit Mace, Totem, Trident & More**
+> 🧱 **Folia Ready** | ⚙️ **Custom Messages** | 🪓 **Disable Mace, Totem, Trident & More**
 
 > 🎚️ **XP-Based or PlaceholderAPI (integer output) based region entry limits**
 
