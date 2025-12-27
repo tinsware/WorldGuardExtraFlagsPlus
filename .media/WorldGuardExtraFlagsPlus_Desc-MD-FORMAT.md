@@ -25,7 +25,7 @@ An advanced WorldGuard extension that adds over 30+ extra region flags for full 
 - 🔨 **New flag:** `permit-workbenches` – block workbench usage (anvil, crafting table, ender chest, etc.) and crafting table crafting in regions
   - *Note: `permit-workbenches CRAFT` now only blocks crafting table (3x3) crafting, not inventory (2x2) crafting. Use `inventory-craft` flag to block inventory crafting.*
 - 🎨 **New flag:** `inventory-craft` – block inventory crafting (2x2 grid) in regions
-- 🛡️ **Godmode Flag Enhancement** – The `godmode` flag now also disables EssentialsX godmode when entering regions with godmode disabled (EssentialsX integration)
+- 🛡️ **Godmode & Fly Flag Enhancement** – The `godmode` and `fly` flags now also disable EssentialsX godmode/fly when entering regions with these flags disabled (EssentialsX integration)
 
 ---
 
@@ -117,7 +117,7 @@ Example:
 
 | Minecraft       | WorldGuard | ExtraFlagsPlus | Support   |
 | --------------- | ---------- | -------------- | --------- |
-| 1.20 – 1.21.10 | 7.0.13+    | 4.3.10+         | ✅ Active |
+| 1.20 – 1.21.11 | 7.0.15+    | 4.3.10+         | ✅ Active |
 | 1.7 – 1.19     | Older      | ❌ No support  |           |
 
 ---
