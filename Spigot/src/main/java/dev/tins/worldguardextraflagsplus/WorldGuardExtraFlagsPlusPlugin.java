@@ -199,13 +199,14 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 			// Check if TAB is installed (TAB integration is supported)
 			boolean tabInstalled = this.getServer().getPluginManager().getPlugin("TAB") != null;
 			
-			// Show warning about team conflicts
-			this.getLogger().warning("[Collision Flag] The disable-collision flag uses Minecraft teams.");
-			this.getLogger().warning("[Collision Flag] Using this flag with plugins that manage teams may cause conflicts!");
-			this.getLogger().warning("[Collision Flag] Do NOT use the disable-collision flag if you have these plugins installed.");
-
+      this.getLogger().info(" ");
+			// Show info about team conflicts
+			this.getLogger().info("[Collision Flag] The disable-collision flag uses Minecraft teams.");
+			this.getLogger().info("[Collision Flag] Using this flag with plugins that manage teams may cause conflicts!");
+			this.getLogger().info("[Collision Flag] Do NOT use the disable-collision flag if you have these plugins installed.");
       // Show supported plugins with team integration
-			this.getLogger().warning("[Collision Flag] Supported plugins with (1): TAB");
+			this.getLogger().info("[Collision Flag] Supported plugins with (1): TAB");
+      this.getLogger().info(" ");
 
 			
 			if (this.getServer().getScoreboardManager() == null || 
@@ -259,7 +260,19 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 			this.getLogger().warning("[Collision Flag] Collision feature will be disabled");
 		}
 
+		// Register PlayerListener (contains multiple event handlers)
 		this.getServer().getPluginManager().registerEvents(new PlayerListener(this, this.worldGuardPlugin, this.regionContainer, this.sessionManager), this);
+
+		// Conditionally register JoinLocationListener only if join-location flag is enabled
+		if (Config.isJoinLocationEnabled())
+		{
+			this.getServer().getPluginManager().registerEvents(new JoinLocationListener(this.worldGuardPlugin, this.regionContainer), this);
+			this.sendJoinLocationDeprecationWarning();
+		} else {
+      this.getLogger().info(" ");
+			this.getLogger().info("[Join Location Flag] Disabled in config-wgefp.yml it will not load the flag");
+      this.getLogger().info(" ");
+		}
 		this.getServer().getPluginManager().registerEvents(new BlockListener(this.worldGuardPlugin, this.regionContainer, this.sessionManager), this);
 		this.getServer().getPluginManager().registerEvents(new WorldListener(this, this.regionContainer), this);
 		this.getServer().getPluginManager().registerEvents(new EntityListener(this.worldGuardPlugin, this.regionContainer, this.sessionManager), this);
@@ -288,7 +301,7 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 		{
 			this.doUnloadChunkFlagCheck(world);
 		}
-		
+
 		this.setupMetrics();
 		
 		// Setup update checker
@@ -298,6 +311,15 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 		this.getCommand("wgefp").setExecutor(new dev.tins.worldguardextraflagsplus.commands.ReloadCommand(this));
 		this.getCommand("wgefp").setTabCompleter(new dev.tins.worldguardextraflagsplus.commands.ReloadCommand(this));
 	}
+
+  private void sendJoinLocationDeprecationWarning()
+  {
+    this.getLogger().info(" >> >> ");
+    this.getLogger().info(" >> >> If you are not using \"join-location\" flag, you can disable it in the \"config-wgefp.yml\" ");
+    this.getLogger().info(" >> >> This will avoid the deprecation warning on server load");
+    this.getLogger().info(" >> >> Otherwise, the plugin will work correctly, deprecation warning will not broke working of it.");
+		this.getLogger().info(" >> >> ");
+  }
 
 	public void doUnloadChunkFlagCheck(org.bukkit.World world)
 	{
@@ -474,6 +496,8 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 				(e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
 		}
 	}
+
+  
 	
 	private void setupMetrics()
 	{

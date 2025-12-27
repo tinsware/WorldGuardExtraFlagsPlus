@@ -33,6 +33,12 @@ public final class PluginConfig {
 		"Controls behavior of the godmode flag"
 	})
 	private GodmodeSettings godmode = new GodmodeSettings();
+
+	@Comment({
+		"Join location settings",
+		"Controls behavior of the join-location flag"
+	})
+	private JoinLocationSettings joinLocation = new JoinLocationSettings();
 	
 	@Getter
 	@NoArgsConstructor
@@ -60,6 +66,18 @@ public final class PluginConfig {
 			"Default: false"
 		})
 		private boolean autoGiveGodmodeRegionLeft = false;
+	}
+
+	@Getter
+	@NoArgsConstructor
+	@Configuration
+	public static class JoinLocationSettings {
+		@Comment({
+			"If true, enables the join-location flag functionality",
+			"If false, disables the join-location flag to avoid deprecation warnings on Paper servers",
+			"Warning: On Paper servers, enabling this will show a deprecation warning but functionality works correctly"
+		})
+		private boolean enabled = true;
 	}
 }
 

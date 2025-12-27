@@ -138,6 +138,11 @@ public class Config
 	{
 		return config != null ? config.getGodmode().isAutoGiveGodmodeRegionLeft() : false;
 	}
+
+	public static boolean isJoinLocationEnabled()
+	{
+		return config != null ? config.getJoinLocation().isEnabled() : true; // Default to true for backward compatibility
+	}
 	
 	public static File getConfigFile()
 	{
