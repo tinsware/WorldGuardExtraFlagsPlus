@@ -20,6 +20,11 @@ public final class PluginConfig {
 		You can customize plugin behavior here
 		
 		IMPORTANT: This file is reloaded when you use /wg reload or /wgefp reload
+		
+		=============================================================================
+		INDIVIDUAL FLAG SETTINGS
+		=============================================================================
+		Additional configuration for flags that need extra settings
 		""";
 	
 	@Comment({
@@ -33,12 +38,6 @@ public final class PluginConfig {
 		"Controls behavior of the godmode flag"
 	})
 	private GodmodeSettings godmode = new GodmodeSettings();
-
-	@Comment({
-		"Join location settings",
-		"Controls behavior of the join-location flag"
-	})
-	private JoinLocationSettings joinLocation = new JoinLocationSettings();
 	
 	@Getter
 	@NoArgsConstructor
@@ -68,16 +67,109 @@ public final class PluginConfig {
 		private boolean autoGiveGodmodeRegionLeft = false;
 	}
 
+	@Comment({
+    " ",
+		"=============================================================================",
+		"MASTER FLAG CONTROL",
+    "=============================================================================",
+    "Enable/disable all available flags here",
+    "Set to true to enable, false to disable",
+    "Disabled flags won't be registered (no deprecation warnings on Paper servers)"
+	})
+	private AllFlagsControl allFlagsControl = new AllFlagsControl();
+
 	@Getter
 	@NoArgsConstructor
 	@Configuration
-	public static class JoinLocationSettings {
+	public static class AllFlagsControl {
 		@Comment({
-			"If true, enables the join-location flag functionality",
-			"If false, disables the join-location flag to avoid deprecation warnings on Paper servers",
-			"Warning: On Paper servers, enabling this will show a deprecation warning but functionality works correctly"
+			"LOCATION & TELEPORTATION",
+			"------------------------"
 		})
-		private boolean enabled = true;
+		private boolean teleportOnEntry = true;
+		private boolean teleportOnExit = true;
+		@Comment("By default its true, if you are not using and want to turn off warns set it to false")
+		private boolean joinLocation = true;
+		private boolean respawnLocation = true;
+
+		@Comment({
+			"COMMAND EXECUTION",
+			"-----------------"
+		})
+		private boolean commandOnEntry = true;
+		private boolean commandOnExit = true;
+		private boolean consoleCommandOnEntry = true;
+		private boolean consoleCommandOnExit = true;
+
+		@Comment({
+			"MOVEMENT & SPEED CONTROL",
+			"------------------------"
+		})
+		private boolean walkSpeed = true;
+		private boolean flySpeed = true;
+		private boolean fly = true;
+		private boolean glide = true;
+		private boolean frostwalker = true;
+
+		@Comment({
+			"PROTECTION & SURVIVAL",
+			"---------------------"
+		})
+		private boolean godmode = true;
+		private boolean keepInventory = true;
+		private boolean keepExp = true;
+		private boolean itemDurability = true;
+
+		@Comment({
+			"CHAT MODIFICATION",
+			"-----------------"
+		})
+		private boolean chatPrefix = true;
+		private boolean chatSuffix = true;
+
+		@Comment({
+			"EFFECT CONTROL",
+			"--------------"
+		})
+		private boolean blockedEffects = true;
+		private boolean giveEffects = true;
+
+		@Comment({
+			"WORLD INTERACTION",
+			"-----------------"
+		})
+		private boolean worldedit = true;
+		private boolean playSounds = true;
+		private boolean netherPortals = true;
+		private boolean chunkUnload = true;
+		private boolean villagerTrade = true;
+		private boolean inventoryCraft = true;
+
+		@Comment({
+			"BLOCK & ITEM CONTROL",
+			"-------------------"
+		})
+		private boolean allowBlockPlace = true;
+		private boolean denyBlockPlace = true;
+		private boolean allowBlockBreak = true;
+		private boolean denyBlockBreak = true;
+		private boolean denyItemDrops = true;
+		private boolean denyItemPickup = true;
+		private boolean disableCompletely = true;
+		private boolean permitWorkbenches = true;
+
+		@Comment({
+			"ENTRY CONTROL",
+			"-------------"
+		})
+		private boolean entryMinLevel = true;
+		private boolean entryMaxLevel = true;
+
+		@Comment({
+			"SPECIAL FEATURES",
+			"----------------"
+		})
+		private boolean disableCollision = true;
 	}
 }
 

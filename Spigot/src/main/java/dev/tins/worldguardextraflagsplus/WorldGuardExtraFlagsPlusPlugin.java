@@ -77,47 +77,48 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 		try
 		{
 			FlagRegistry flagRegistry = this.worldGuard.getFlagRegistry();
-			flagRegistry.register(Flags.TELEPORT_ON_ENTRY);
-			flagRegistry.register(Flags.TELEPORT_ON_EXIT);
-			flagRegistry.register(Flags.COMMAND_ON_ENTRY);
-			flagRegistry.register(Flags.COMMAND_ON_EXIT);
-			flagRegistry.register(Flags.CONSOLE_COMMAND_ON_ENTRY);
-			flagRegistry.register(Flags.CONSOLE_COMMAND_ON_EXIT);
-			flagRegistry.register(Flags.WALK_SPEED);
-			flagRegistry.register(Flags.KEEP_INVENTORY);
-			flagRegistry.register(Flags.KEEP_EXP);
-			flagRegistry.register(Flags.CHAT_PREFIX);
-			flagRegistry.register(Flags.CHAT_SUFFIX);
-			flagRegistry.register(Flags.BLOCKED_EFFECTS);
-			flagRegistry.register(Flags.GODMODE);
-			flagRegistry.register(Flags.RESPAWN_LOCATION);
-			flagRegistry.register(Flags.WORLDEDIT);
-			flagRegistry.register(Flags.GIVE_EFFECTS);
-			flagRegistry.register(Flags.FLY);
-			flagRegistry.register(Flags.FLY_SPEED);
-			flagRegistry.register(Flags.PLAY_SOUNDS);
-			flagRegistry.register(Flags.FROSTWALKER);
-			flagRegistry.register(Flags.NETHER_PORTALS);
-			flagRegistry.register(Flags.ALLOW_BLOCK_PLACE);
-			flagRegistry.register(Flags.DENY_BLOCK_PLACE);
-			flagRegistry.register(Flags.ALLOW_BLOCK_BREAK);
-			flagRegistry.register(Flags.DENY_BLOCK_BREAK);
-			flagRegistry.register(Flags.DENY_ITEM_DROPS);
-			flagRegistry.register(Flags.DENY_ITEM_PICKUP);
-			flagRegistry.register(Flags.GLIDE);
-			flagRegistry.register(Flags.CHUNK_UNLOAD);
-      flagRegistry.register(Flags.ITEM_DURABILITY);
-      flagRegistry.register(Flags.JOIN_LOCATION);
-      
-      flagRegistry.register(Flags.DISABLE_COMPLETELY);
-      flagRegistry.register(Flags.PERMIT_WORKBENCHES);
-      flagRegistry.register(Flags.ENTRY_MIN_LEVEL);
-      flagRegistry.register(Flags.ENTRY_MAX_LEVEL);
-      flagRegistry.register(Flags.VILLAGER_TRADE);
-      flagRegistry.register(Flags.INVENTORY_CRAFT);
-      
-      // Register collision flag (scoreboard availability will be checked in onEnable())
-      flagRegistry.register(Flags.DISABLE_COLLISION);
+
+			// Register flags based on configuration
+			if (Config.isFlagEnabled("teleport-on-entry")) flagRegistry.register(Flags.TELEPORT_ON_ENTRY);
+			if (Config.isFlagEnabled("teleport-on-exit")) flagRegistry.register(Flags.TELEPORT_ON_EXIT);
+			if (Config.isFlagEnabled("command-on-entry")) flagRegistry.register(Flags.COMMAND_ON_ENTRY);
+			if (Config.isFlagEnabled("command-on-exit")) flagRegistry.register(Flags.COMMAND_ON_EXIT);
+			if (Config.isFlagEnabled("console-command-on-entry")) flagRegistry.register(Flags.CONSOLE_COMMAND_ON_ENTRY);
+			if (Config.isFlagEnabled("console-command-on-exit")) flagRegistry.register(Flags.CONSOLE_COMMAND_ON_EXIT);
+			if (Config.isFlagEnabled("walk-speed")) flagRegistry.register(Flags.WALK_SPEED);
+			if (Config.isFlagEnabled("keep-inventory")) flagRegistry.register(Flags.KEEP_INVENTORY);
+			if (Config.isFlagEnabled("keep-exp")) flagRegistry.register(Flags.KEEP_EXP);
+			if (Config.isFlagEnabled("chat-prefix")) flagRegistry.register(Flags.CHAT_PREFIX);
+			if (Config.isFlagEnabled("chat-suffix")) flagRegistry.register(Flags.CHAT_SUFFIX);
+			if (Config.isFlagEnabled("blocked-effects")) flagRegistry.register(Flags.BLOCKED_EFFECTS);
+			if (Config.isFlagEnabled("godmode")) flagRegistry.register(Flags.GODMODE);
+			if (Config.isFlagEnabled("respawn-location")) flagRegistry.register(Flags.RESPAWN_LOCATION);
+			if (Config.isFlagEnabled("worldedit")) flagRegistry.register(Flags.WORLDEDIT);
+			if (Config.isFlagEnabled("give-effects")) flagRegistry.register(Flags.GIVE_EFFECTS);
+			if (Config.isFlagEnabled("fly")) flagRegistry.register(Flags.FLY);
+			if (Config.isFlagEnabled("fly-speed")) flagRegistry.register(Flags.FLY_SPEED);
+			if (Config.isFlagEnabled("play-sounds")) flagRegistry.register(Flags.PLAY_SOUNDS);
+			if (Config.isFlagEnabled("frostwalker")) flagRegistry.register(Flags.FROSTWALKER);
+			if (Config.isFlagEnabled("nether-portals")) flagRegistry.register(Flags.NETHER_PORTALS);
+			if (Config.isFlagEnabled("allow-block-place")) flagRegistry.register(Flags.ALLOW_BLOCK_PLACE);
+			if (Config.isFlagEnabled("deny-block-place")) flagRegistry.register(Flags.DENY_BLOCK_PLACE);
+			if (Config.isFlagEnabled("allow-block-break")) flagRegistry.register(Flags.ALLOW_BLOCK_BREAK);
+			if (Config.isFlagEnabled("deny-block-break")) flagRegistry.register(Flags.DENY_BLOCK_BREAK);
+			if (Config.isFlagEnabled("deny-item-drops")) flagRegistry.register(Flags.DENY_ITEM_DROPS);
+			if (Config.isFlagEnabled("deny-item-pickup")) flagRegistry.register(Flags.DENY_ITEM_PICKUP);
+			if (Config.isFlagEnabled("glide")) flagRegistry.register(Flags.GLIDE);
+			if (Config.isFlagEnabled("chunk-unload")) flagRegistry.register(Flags.CHUNK_UNLOAD);
+			if (Config.isFlagEnabled("item-durability")) flagRegistry.register(Flags.ITEM_DURABILITY);
+			if (Config.isFlagEnabled("join-location")) flagRegistry.register(Flags.JOIN_LOCATION);
+			if (Config.isFlagEnabled("disable-completely")) flagRegistry.register(Flags.DISABLE_COMPLETELY);
+			if (Config.isFlagEnabled("permit-workbenches")) flagRegistry.register(Flags.PERMIT_WORKBENCHES);
+			if (Config.isFlagEnabled("entry-min-level")) flagRegistry.register(Flags.ENTRY_MIN_LEVEL);
+			if (Config.isFlagEnabled("entry-max-level")) flagRegistry.register(Flags.ENTRY_MAX_LEVEL);
+			if (Config.isFlagEnabled("villager-trade")) flagRegistry.register(Flags.VILLAGER_TRADE);
+			if (Config.isFlagEnabled("inventory-craft")) flagRegistry.register(Flags.INVENTORY_CRAFT);
+
+			// Register collision flag (scoreboard availability will be checked in onEnable())
+			if (Config.isFlagEnabled("disable-collision")) flagRegistry.register(Flags.DISABLE_COLLISION);
 		}
 		catch (Exception e)
 		{
@@ -174,23 +175,24 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 			}
 		}
 
-		this.sessionManager.registerHandler(TeleportOnEntryFlagHandler.FACTORY(plugin), null);
-		this.sessionManager.registerHandler(TeleportOnExitFlagHandler.FACTORY(plugin), null);
+		// Register handlers based on configuration
+		if (Config.isFlagEnabled("teleport-on-entry")) this.sessionManager.registerHandler(TeleportOnEntryFlagHandler.FACTORY(plugin), null);
+		if (Config.isFlagEnabled("teleport-on-exit")) this.sessionManager.registerHandler(TeleportOnExitFlagHandler.FACTORY(plugin), null);
 
-		this.sessionManager.registerHandler(WalkSpeedFlagHandler.FACTORY(), null);
-		this.sessionManager.registerHandler(FlySpeedFlagHandler.FACTORY(), null);
-		this.sessionManager.registerHandler(FlyFlagHandler.FACTORY(), null);
-		this.sessionManager.registerHandler(GlideFlagHandler.FACTORY(), null);
-		this.sessionManager.registerHandler(GodmodeFlagHandler.FACTORY(), null);
-		this.sessionManager.registerHandler(PlaySoundsFlagHandler.FACTORY(plugin), null);
-		this.sessionManager.registerHandler(BlockedEffectsFlagHandler.FACTORY(), null);
-		this.sessionManager.registerHandler(GiveEffectsFlagHandler.FACTORY(), null);
+		if (Config.isFlagEnabled("walk-speed")) this.sessionManager.registerHandler(WalkSpeedFlagHandler.FACTORY(), null);
+		if (Config.isFlagEnabled("fly-speed")) this.sessionManager.registerHandler(FlySpeedFlagHandler.FACTORY(), null);
+		if (Config.isFlagEnabled("fly")) this.sessionManager.registerHandler(FlyFlagHandler.FACTORY(), null);
+		if (Config.isFlagEnabled("glide")) this.sessionManager.registerHandler(GlideFlagHandler.FACTORY(), null);
+		if (Config.isFlagEnabled("godmode")) this.sessionManager.registerHandler(GodmodeFlagHandler.FACTORY(), null);
+		if (Config.isFlagEnabled("play-sounds")) this.sessionManager.registerHandler(PlaySoundsFlagHandler.FACTORY(plugin), null);
+		if (Config.isFlagEnabled("blocked-effects")) this.sessionManager.registerHandler(BlockedEffectsFlagHandler.FACTORY(), null);
+		if (Config.isFlagEnabled("give-effects")) this.sessionManager.registerHandler(GiveEffectsFlagHandler.FACTORY(), null);
 
-		this.sessionManager.registerHandler(CommandOnEntryFlagHandler.FACTORY(), null);
-		this.sessionManager.registerHandler(CommandOnExitFlagHandler.FACTORY(), null);
-		this.sessionManager.registerHandler(ConsoleCommandOnEntryFlagHandler.FACTORY(), null);
-		this.sessionManager.registerHandler(ConsoleCommandOnExitFlagHandler.FACTORY(), null);
-		this.sessionManager.registerHandler(EntryLevelFlagHandler.FACTORY(plugin), null);
+		if (Config.isFlagEnabled("command-on-entry")) this.sessionManager.registerHandler(CommandOnEntryFlagHandler.FACTORY(), null);
+		if (Config.isFlagEnabled("command-on-exit")) this.sessionManager.registerHandler(CommandOnExitFlagHandler.FACTORY(), null);
+		if (Config.isFlagEnabled("console-command-on-entry")) this.sessionManager.registerHandler(ConsoleCommandOnEntryFlagHandler.FACTORY(), null);
+		if (Config.isFlagEnabled("console-command-on-exit")) this.sessionManager.registerHandler(ConsoleCommandOnExitFlagHandler.FACTORY(), null);
+		if (Config.isFlagEnabled("entry-min-level") || Config.isFlagEnabled("entry-max-level")) this.sessionManager.registerHandler(EntryLevelFlagHandler.FACTORY(plugin), null);
 		
 		// Initialize collision handler (uses native Minecraft teams, no external libraries needed)
 		// Check scoreboard availability now that server is fully loaded
@@ -264,7 +266,7 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 		this.getServer().getPluginManager().registerEvents(new PlayerListener(this, this.worldGuardPlugin, this.regionContainer, this.sessionManager), this);
 
 		// Conditionally register JoinLocationListener only if join-location flag is enabled
-		if (Config.isJoinLocationEnabled())
+		if (Config.isFlagEnabled("join-location"))
 		{
 			this.getServer().getPluginManager().registerEvents(new JoinLocationListener(this.worldGuardPlugin, this.regionContainer), this);
 			this.sendJoinLocationDeprecationWarning();
@@ -273,13 +275,39 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 			this.getLogger().info("[Join Location Flag] Disabled in config-wgefp.yml it will not load the flag");
       this.getLogger().info(" ");
 		}
-		this.getServer().getPluginManager().registerEvents(new BlockListener(this.worldGuardPlugin, this.regionContainer, this.sessionManager), this);
-		this.getServer().getPluginManager().registerEvents(new WorldListener(this, this.regionContainer), this);
-		this.getServer().getPluginManager().registerEvents(new EntityListener(this.worldGuardPlugin, this.regionContainer, this.sessionManager), this);
-		this.getServer().getPluginManager().registerEvents(new VillagerTradeListener(this.worldGuardPlugin, this.regionContainer, this.sessionManager), this);
+		// Register listeners based on configuration
+		if (Config.isFlagEnabled("allow-block-place") || Config.isFlagEnabled("deny-block-place") ||
+		    Config.isFlagEnabled("allow-block-break") || Config.isFlagEnabled("deny-block-break") ||
+		    Config.isFlagEnabled("frostwalker"))
+		{
+			this.getServer().getPluginManager().registerEvents(new BlockListener(this.worldGuardPlugin, this.regionContainer, this.sessionManager), this);
+		}
+
+		if (Config.isFlagEnabled("chunk-unload") || Config.isFlagEnabled("nether-portals"))
+		{
+			this.getServer().getPluginManager().registerEvents(new WorldListener(this, this.regionContainer), this);
+		}
+
+		// EntityListener handles multiple flags
+		if (Config.isFlagEnabled("disable-completely") || Config.isFlagEnabled("permit-workbenches") ||
+		    Config.isFlagEnabled("inventory-craft") || Config.isFlagEnabled("nether-portals") ||
+		    Config.isFlagEnabled("allow-block-break") || Config.isFlagEnabled("allow-block-place") ||
+		    Config.isFlagEnabled("glide"))
+		{
+			this.getServer().getPluginManager().registerEvents(new EntityListener(this.worldGuardPlugin, this.regionContainer, this.sessionManager), this);
+		}
+
+		if (Config.isFlagEnabled("villager-trade"))
+		{
+			this.getServer().getPluginManager().registerEvents(new VillagerTradeListener(this.worldGuardPlugin, this.regionContainer, this.sessionManager), this);
+		}
+
 		this.getServer().getPluginManager().registerEvents(new dev.tins.worldguardextraflagsplus.listeners.WorldGuardReloadListener(this), this);
 
-		this.worldEditPlugin.getWorldEdit().getEventBus().register(new WorldEditListener(this.worldGuardPlugin, this.regionContainer, this.sessionManager));
+		if (Config.isFlagEnabled("worldedit"))
+		{
+			this.worldEditPlugin.getWorldEdit().getEventBus().register(new WorldEditListener(this.worldGuardPlugin, this.regionContainer, this.sessionManager));
+		}
 		
 		if (this.protocolLibHelper != null)
 		{

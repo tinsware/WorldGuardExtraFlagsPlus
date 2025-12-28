@@ -16,7 +16,7 @@ public class RemoveEffectPacketListener extends PacketAdapter
 {
 	public RemoveEffectPacketListener()
 	{
-		super(WorldGuardExtraFlagsPlusPlugin.getPlugin(), PacketType.Play.Server.REMOVE_ENTITY_EFFECT);
+		super(WorldGuardExtraFlagsPlusPlugin.getPlugin(WorldGuardExtraFlagsPlusPlugin.class), PacketType.Play.Server.REMOVE_ENTITY_EFFECT);
 	}
 	
 	@Override
