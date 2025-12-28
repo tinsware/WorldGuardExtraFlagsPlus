@@ -201,6 +201,24 @@ public class EntityListener implements Listener
     }
 
     /**
+     * Checks if a player is standing directly on a specific block.
+     * This is used to provide helpful feedback when players try to interact with blocks they're standing on.
+     *
+     * @param player The player
+     * @param block The block to check
+     * @return true if the player is standing directly on this block
+     */
+    private boolean isPlayerStandingOnBlock(Player player, org.bukkit.block.Block block) {
+        org.bukkit.Location playerLoc = player.getLocation();
+        org.bukkit.Location blockLoc = block.getLocation();
+
+        // Check if player is standing directly on this block (player Y - 1 = block Y)
+        return playerLoc.getBlockX() == blockLoc.getBlockX() &&
+               playerLoc.getBlockY() - 1 == blockLoc.getBlockY() &&
+               playerLoc.getBlockZ() == blockLoc.getBlockZ();
+    }
+
+    /**
      * Handles bucket interactions with blocks to allow filling buckets when players have appropriate permissions.
      * This fixes the issue where players need to double-click water/lava blocks to pick them up.
      *
@@ -232,6 +250,13 @@ public class EntityListener implements Listener
 
         Material blockMaterial = clickedBlock.getType();
         Location blockLocation = BukkitAdapter.adapt(clickedBlock.getLocation());
+
+        // Check if player is standing on the block they're trying to interact with
+        if (isPlayerStandingOnBlock(player, clickedBlock)) {
+            // Send helpful message explaining why the interaction failed
+            Messages.sendMessageWithCooldown(player, "standing-on-block-interaction");
+            return false; // Don't process further - this is expected behavior
+        }
 
         // Check if this is a bucket filling interaction (empty bucket with water/lava)
         if (itemMaterial == Material.BUCKET && (blockMaterial == Material.WATER || blockMaterial == Material.LAVA))

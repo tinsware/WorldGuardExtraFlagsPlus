@@ -69,5 +69,11 @@ public final class PluginMessages {
 	
 	@Comment("Godmode disabled message (extra plugins and worldguard)")
 	private String godmodeDisabled = "&cHey! &7Godmode disabled in this region!";
+
+	@Comment({
+		"Message shown when player tries to interact with block they're standing on",
+		"Helps players understand why bucket interactions fail when standing on water/lava"
+	})
+	private String standingOnBlockInteraction = "&eHey! &7Move slightly off the block to interact with it!";
 }
 
