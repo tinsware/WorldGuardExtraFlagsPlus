@@ -75,5 +75,8 @@ public final class PluginMessages {
 		"Helps players understand why bucket interactions fail when standing on water/lava"
 	})
 	private String standingOnBlockInteraction = "&eHey! &7Move slightly off the block to interact with it!";
+
+	@Comment("Player count limit denied message")
+	private String playerCountLimitDenied = "&cThis region is full! Maximum players: {limit}";
 }
 

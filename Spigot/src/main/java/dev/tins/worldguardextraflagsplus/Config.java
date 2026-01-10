@@ -206,6 +206,7 @@ public class Config
 			// Entry Control
 			case "entry-min-level": return flags.isEntryMinLevel();
 			case "entry-max-level": return flags.isEntryMaxLevel();
+			case "player-count-limit": return flags.isPlayerCountLimit();
 
 			// Special Features
 			case "disable-collision": return flags.isDisableCollision();

@@ -114,6 +114,7 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 			if (Config.isFlagEnabled("permit-workbenches")) flagRegistry.register(Flags.PERMIT_WORKBENCHES);
 			if (Config.isFlagEnabled("entry-min-level")) flagRegistry.register(Flags.ENTRY_MIN_LEVEL);
 			if (Config.isFlagEnabled("entry-max-level")) flagRegistry.register(Flags.ENTRY_MAX_LEVEL);
+			if (Config.isFlagEnabled("player-count-limit")) flagRegistry.register(Flags.PLAYER_COUNT_LIMIT);
 			if (Config.isFlagEnabled("villager-trade")) flagRegistry.register(Flags.VILLAGER_TRADE);
 			if (Config.isFlagEnabled("inventory-craft")) flagRegistry.register(Flags.INVENTORY_CRAFT);
 
@@ -195,7 +196,8 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 		if (Config.isFlagEnabled("command-on-exit")) this.sessionManager.registerHandler(CommandOnExitFlagHandler.FACTORY(), null);
 		if (Config.isFlagEnabled("console-command-on-entry")) this.sessionManager.registerHandler(ConsoleCommandOnEntryFlagHandler.FACTORY(), null);
 		if (Config.isFlagEnabled("console-command-on-exit")) this.sessionManager.registerHandler(ConsoleCommandOnExitFlagHandler.FACTORY(), null);
-		if (Config.isFlagEnabled("entry-min-level") || Config.isFlagEnabled("entry-max-level")) this.sessionManager.registerHandler(EntryLevelFlagHandler.FACTORY(plugin), null);
+			if (Config.isFlagEnabled("entry-min-level") || Config.isFlagEnabled("entry-max-level")) this.sessionManager.registerHandler(EntryLevelFlagHandler.FACTORY(plugin), null);
+			if (Config.isFlagEnabled("player-count-limit")) this.sessionManager.registerHandler(PlayerCountLimitFlagHandler.FACTORY(plugin), null);
 		
 		// Initialize collision handler (uses native Minecraft teams, no external libraries needed)
 		// Check scoreboard availability now that server is fully loaded

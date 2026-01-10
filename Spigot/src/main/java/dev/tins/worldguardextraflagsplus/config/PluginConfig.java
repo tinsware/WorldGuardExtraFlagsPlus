@@ -164,6 +164,7 @@ public final class PluginConfig {
 		})
 		private boolean entryMinLevel = true;
 		private boolean entryMaxLevel = true;
+		private boolean playerCountLimit = true;
 
 		@Comment({
 			"SPECIAL FEATURES",
