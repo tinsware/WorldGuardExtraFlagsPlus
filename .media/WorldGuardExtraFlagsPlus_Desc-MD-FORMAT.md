@@ -121,7 +121,7 @@ Example:
 
 | Minecraft       | WorldGuard | ExtraFlagsPlus | Support   |
 | --------------- | ---------- | -------------- | --------- |
-| 1.20 – 1.21.11 | 7.0.15+    | 4.3.10+         | ✅ Active |
+| 1.20 – 1.21.11 | 7.0.15+    | 4.3.11+         | ✅ Active |
 | 1.7 – 1.19     | Older      | ❌ No support  |           |
 
 ---

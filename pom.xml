@@ -4,7 +4,7 @@
    <groupId>dev.tins</groupId>
    <artifactId>worldguardextraflagsplus</artifactId>
    <name>WorldGuardExtraFlagsPlus</name>
-   <version>4.3.10</version>
+   <version>4.3.11</version>
    
    <packaging>pom</packaging>
    
