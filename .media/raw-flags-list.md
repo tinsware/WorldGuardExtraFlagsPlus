@@ -1,4 +1,4 @@
-Total: 38 flags
+Total: 39 flags
 
 ## Old Flags (25)
 
@@ -28,7 +28,7 @@ chunk-unload
 item-durability
 join-location
 
-## New Flags (13)
+## New Flags (14)
 
 allow-block-place
 deny-block-place
@@ -43,3 +43,4 @@ deny-item-pickup *
 deny-item-drops *
 permit-workbenches *
 inventory-craft *
+player-count-limit *

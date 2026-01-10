@@ -15,6 +15,7 @@ A Bukkit plugin extension that provides extra flags for [WorldGuard](https://git
 - New Flag **"disable-completely"** | Blocks all usage of specified items (MACE, FIREWORK_ROCKET, WIND_CHARGE, TOTEM_OF_UNDYING, TRIDENT) ✅
   - *Note: `permit-completely` is replaced. Please use `disable-completely` instead.*
 - New Flags **"entry-min-level"** & **"entry-max-level"** | Restrict region entry based on **Player (xp) level** or **PlaceholderAPI** values ✅
+- New Flag **"player-count-limit"** | Limit maximum number of players in a region ✅
 - New **Configurable Messages** | Customize all plugin messages via `messages-wgefp.yml` in WorldGuard folder ✅
 - New **Message Cooldown System** | Prevents message spam with configurable cooldown (default: 3 seconds) ✅
 - **Update Checker** | Automatically checks for updates from Spigot, GitHub, and Modrinth ✅

@@ -83,7 +83,7 @@ public final class Flags
 
 	public final static Flag<String> ENTRY_MIN_LEVEL = new PlaceholderLevelFlag("entry-min-level");
 	public final static Flag<String> ENTRY_MAX_LEVEL = new PlaceholderLevelFlag("entry-max-level");
-	public final static Flag<String> PLAYER_COUNT_LIMIT = new PlaceholderLevelFlag("player-count-limit");
+	public final static Flag<String> PLAYER_COUNT_LIMIT = new IntegerFlag("player-count-limit");
 }
 
 

@@ -52,30 +52,21 @@ WorldGuard protects land by defining regions.
 > Here’s a quick overview — all managed with standard WorldGuard flag commands.
 
 ```
-teleport-on-entry / teleport-on-exit  
-command-on-entry / command-on-exit  
-console-command-on-entry / console-command-on-exit  
-walk-speed / fly-speed  
-keep-inventory / keep-exp  
-chat-prefix / chat-suffix  
-godmode / blocked-effects  
-respawn-location / worldedit / give-effects  
-fly / play-sounds / frostwalker / nether-portals / glide (elytra-blocker)
-chunk-unload / item-durability / join-location
+[teleport-on-entry / teleport-on-exit]  [command-on-entry / command-on-exit]
+[console-command-on-entry / console-command-on-exit]  [walk-speed / fly-speed]
+[keep-inventory / keep-exp]  [chat-prefix / chat-suffix]  [godmode] 
+[blocked-effects]  [respawn-location]  [worldedit]  [give-effects]  
+[fly]  [play-sounds]  [frostwalker]  [nether-portals]  [glide](elytra-blocker)
+[chunk-unload]  [item-durability]  [join-location](not-on-folia)
 ```
 
 **New in Plus:**
 
 ```
-disable-completely (old usage was: permit-completely)
-entry-min-level
-entry-max-level
-villager-trade
-disable-collision
-allow-block-place / deny-block-place / allow-block-break / deny-block-break
-deny-item-drops / deny-item-pickup
-permit-workbenches
-inventory-craft
+[disable-completely]  [entry-min-level / entry-max-level]
+[villager-trade]  [disable-collision]  [deny-item-drops / deny-item-pickup]
+[allow-block-place / deny-block-place]  [allow-block-break / deny-block-break]
+[permit-workbenches]  [inventory-craft]  [player-count-limit]
 ```
 
 ---
@@ -97,6 +88,8 @@ Example:
 /rg flag dungeon entry-min-level 40 %battlepass_tier%
 
 /rg flag spawn villager-trade deny
+
+/rg flag arena player-count-limit 10
 
 /rg flag spawn disable-collision true
 
