@@ -148,9 +148,12 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 	{
 		// Initialize messages system first (loads messages-wgefp.yml from WorldGuard folder)
 		Messages.initialize(this);
-		
+
 		// Initialize config system (loads config-wgefp.yml from WorldGuard folder)
 		Config.initialize(this);
+
+		// Check for conflicting plugins
+		this.checkForConflictingPlugins();
 		
 		// Migrate region files: rename permit-completely to disable-completely (file only, in-memory update happens later)
 		java.util.Set<String> migratedWorlds = this.migrateRegionFiles();
@@ -568,7 +571,34 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 			});
 		});
 	}
-	
+
+	private void checkForConflictingPlugins()
+	{
+		// Check for WorldGuardExtraFlags (old plugin) - this would cause conflicts
+		Plugin oldPlugin = this.getServer().getPluginManager().getPlugin("WorldGuardExtraFlags");
+		if (oldPlugin != null && oldPlugin.isEnabled())
+		{
+			this.getLogger().severe(" ");
+			this.getLogger().severe("╔══════════════════════════════════════════════════════════════╗");
+			this.getLogger().severe("║                      ⚠️  CRITICAL WARNING ⚠️                     ║");
+			this.getLogger().severe("║                                                                      ║");
+			this.getLogger().severe("║  WorldGuardExtraFlags AND WorldGuardExtraFlagsPlus DETECTED!       ║");
+			this.getLogger().severe("║                                                                      ║");
+			this.getLogger().severe("║  🚨 DO NOT USE BOTH PLUGINS TOGETHER!                              ║");
+			this.getLogger().severe("║                                                                      ║");
+			this.getLogger().severe("║  Please remove the old WorldGuardExtraFlags.jar file from your     ║");
+			this.getLogger().severe("║  plugins folder and restart the server.                             ║");
+			this.getLogger().severe("║                                                                      ║");
+			this.getLogger().severe("║  Keeping both plugins will cause conflicts and unpredictable       ║");
+			this.getLogger().severe("║  behavior!                                                          ║");
+			this.getLogger().severe("║                                                                      ║");
+			this.getLogger().severe("╚══════════════════════════════════════════════════════════════╝");
+			this.getLogger().severe(" ");
+
+			// Don't disable the plugin immediately, just warn - let the admin decide
+		}
+	}
+
 	@Override
 	public void onDisable()
 	{

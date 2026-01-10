@@ -2,6 +2,15 @@
 
 A Bukkit plugin extension that provides extra flags for [WorldGuard](https://github.com/EngineHub/WorldGuard).
 
+## ⚠️ Important Warning
+
+> **🚨 DO NOT USE BOTH PLUGINS TOGETHER!**
+>
+> If you're upgrading from `WorldGuardExtraFlags` to `WorldGuardExtraFlagsPlus`, make sure to:
+> - **Remove** the old `WorldGuardExtraFlags.jar` plugin file
+> - **Only keep** `WorldGuardExtraFlagsPlus.jar` on your server
+> - Both plugins cannot coexist - they will conflict with each other
+
 - Support for **Folia** ✅
 - New Flag **"disable-completely"** | Blocks all usage of specified items (MACE, FIREWORK_ROCKET, WIND_CHARGE, TOTEM_OF_UNDYING, TRIDENT) ✅
   - *Note: `permit-completely` is replaced. Please use `disable-completely` instead.*

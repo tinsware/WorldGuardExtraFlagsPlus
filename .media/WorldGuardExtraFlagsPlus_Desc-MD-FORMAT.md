@@ -8,6 +8,17 @@ An advanced WorldGuard extension that adds over 30+ extra region flags for full 
 
 ---
 
+## ⚠️ Important Warning
+
+> **🚨 DO NOT USE BOTH PLUGINS TOGETHER!**
+>
+> If you're upgrading from `WorldGuardExtraFlags` to `WorldGuardExtraFlagsPlus`, make sure to:
+> - **Remove** the old `WorldGuardExtraFlags.jar` plugin file
+> - **Only keep** `WorldGuardExtraFlagsPlus.jar` on your server
+> - Both plugins cannot coexist - they will conflict with each other
+
+---
+
 ## Key Features
 
 - ✅ **Folia support** – fully compatible with async region handling
