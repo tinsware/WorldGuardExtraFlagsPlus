@@ -8,10 +8,8 @@ An advanced WorldGuard extension that adds over 30+ extra region flags for full 
 
 ---
 
-## ⚠️ Important Warning
+## ⚠️ Warning DO NOT USE BOTH PLUGINS TOGETHER!
 
-> **🚨 DO NOT USE BOTH PLUGINS TOGETHER!**
->
 > If you're upgrading from `WorldGuardExtraFlags` to `WorldGuardExtraFlagsPlus`, make sure to:
 > - **Remove** the old `WorldGuardExtraFlags.jar` plugin file
 > - **Only keep** `WorldGuardExtraFlagsPlus.jar` on your server
@@ -70,49 +68,6 @@ WorldGuard protects land by defining regions.
 ```
 
 ---
-
-## Usage
-
-Use the WorldGuard region flag commands as usual —
-all ExtraFlagsPlus flags integrate natively.
-
-Example:
-
-```
-/rg flag spawn disable-completely MACE
-/rg flag spawn disable-completely MACE,FIREWORK_ROCKET
-
-/rg flag spawn disable-completely clear (especially for inherited child regions)
-
-/rg flag dungeon entry-min-level 20 XP
-/rg flag dungeon entry-min-level 40 %battlepass_tier%
-
-/rg flag spawn villager-trade deny
-
-/rg flag arena player-count-limit 10
-
-/rg flag spawn disable-collision true
-
-/rg flag spawn allow-block-place STONE,COBBLESTONE,GRASS_BLOCK
-/rg flag spawn deny-block-place TNT,LAVA_BUCKET
-/rg flag spawn allow-block-break STONE,COBBLESTONE
-/rg flag spawn deny-block-break BEDROCK,SPAWNER
-
-/rg flag spawn deny-item-drops diamond,emerald,netherite_ingot
-/rg flag spawn deny-item-pickup apple,redstone,iron_ingot
-
-/rg flag spawn permit-workbenches ALL
-/rg flag spawn permit-workbenches ALL,ender
-/rg flag spawn permit-workbenches craft,anvil,ender
-/rg flag spawn permit-workbenches clear
-
-/rg flag spawn inventory-craft deny
-
-/rg flag spawn godmode deny (also disables EssentialsX godmode if enabled)
-
-/rg flag spawn chat-prefix "&7[%vault_rank%] "
-/rg flag spawn chat-suffix " &7[%player_level%]"
-```
 
 ---
 
