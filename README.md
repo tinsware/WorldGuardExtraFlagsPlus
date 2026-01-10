@@ -2,10 +2,8 @@
 
 A Bukkit plugin extension that provides extra flags for [WorldGuard](https://github.com/EngineHub/WorldGuard).
 
-## ⚠️ Important Warning
+## ⚠️ Warning DO NOT USE BOTH PLUGINS TOGETHER!
 
-> **🚨 DO NOT USE BOTH PLUGINS TOGETHER!**
->
 > If you're upgrading from `WorldGuardExtraFlags` to `WorldGuardExtraFlagsPlus`, make sure to:
 > - **Remove** the old `WorldGuardExtraFlags.jar` plugin file
 > - **Only keep** `WorldGuardExtraFlagsPlus.jar` on your server

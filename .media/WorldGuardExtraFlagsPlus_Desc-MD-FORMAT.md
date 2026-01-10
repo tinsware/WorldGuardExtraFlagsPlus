@@ -35,6 +35,7 @@ An advanced WorldGuard extension that adds over 30+ extra region flags for full 
   - *Note: `permit-workbenches CRAFT` now only blocks crafting table (3x3) crafting, not inventory (2x2) crafting. Use `inventory-craft` flag to block inventory crafting.*
 - 🎨 **New flag:** `inventory-craft` – block inventory crafting (2x2 grid) in regions
 - 🛡️ **Godmode & Fly Flag Enhancement** – The `godmode` and `fly` flags now also disable EssentialsX godmode/fly when entering regions with these flags disabled (EssentialsX integration)
+- 👥 **New flag:** `player-count-limit` – limit maximum number of players in a region
 
 ---
 
@@ -68,6 +69,11 @@ WorldGuard protects land by defining regions.
 ```
 
 ---
+
+## 📖 Flag Usage Guide
+
+For comprehensive usage examples and detailed flag documentation, see:
+**[Complete Flag Usage Guide](https://github.com/tins-dev/WorldGuardExtraFlagsPlus/blob/master/.media/flag-usages.md)**
 
 ---
 
