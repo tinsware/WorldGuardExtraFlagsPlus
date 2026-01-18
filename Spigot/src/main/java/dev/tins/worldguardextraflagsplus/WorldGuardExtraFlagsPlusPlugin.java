@@ -120,6 +120,7 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 
 			// Register collision flag (scoreboard availability will be checked in onEnable())
 			if (Config.isFlagEnabled("disable-collision")) flagRegistry.register(Flags.DISABLE_COLLISION);
+			if (Config.isFlagEnabled("disable-chambered-enderpearl")) flagRegistry.register(Flags.DISABLE_CHAMBERED_ENDERPEARL);
 		}
 		catch (Exception e)
 		{
@@ -247,7 +248,7 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 				}
 				catch (Throwable e)
 				{
-					this.getLogger().warning("[Collision Flag] Failed to register collision handler: " + 
+					this.getLogger().warning("[Collision Flag] Failed to register collision handler: " +
 						(e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
 					this.getLogger().warning("[Collision Flag] Collision feature will be disabled");
 					this.collisionFlagEnabled = false;
@@ -256,6 +257,11 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 						this.collisionPacketHandler.cleanup();
 						this.collisionPacketHandler = null;
 					}
+				}
+
+				// Register disable-chambered-enderpearl handler
+				if (Config.isFlagEnabled("disable-chambered-enderpearl")) {
+					this.sessionManager.registerHandler(DisableChamberedEnderPearlFlagHandler.FACTORY(), null);
 				}
 			}
 		}

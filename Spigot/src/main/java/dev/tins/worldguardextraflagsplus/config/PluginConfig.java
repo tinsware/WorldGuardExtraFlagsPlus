@@ -38,6 +38,12 @@ public final class PluginConfig {
 		"Controls behavior of the godmode flag"
 	})
 	private GodmodeSettings godmode = new GodmodeSettings();
+
+	@Comment({
+		"Disable chambered ender pearl settings",
+		"Controls behavior of the disable-chambered-enderpearl flag"
+	})
+	private DisableChamberedEnderPearlSettings disableChamberedEnderPearl = new DisableChamberedEnderPearlSettings();
 	
 	@Getter
 	@NoArgsConstructor
@@ -65,6 +71,18 @@ public final class PluginConfig {
 			"Default: false"
 		})
 		private boolean autoGiveGodmodeRegionLeft = false;
+	}
+
+	@Getter
+	@NoArgsConstructor
+	@Configuration
+	public static class DisableChamberedEnderPearlSettings {
+		@Comment({
+			"How long (in seconds) to track ender pearls thrown outside flagged regions",
+			"After this time, pearls will no longer be tracked for teleportation prevention",
+			"Default: 120 seconds (2 minutes)"
+		})
+		private int pearlTrackingExpirySeconds = 120;
 	}
 
 	@Comment({
@@ -171,6 +189,7 @@ public final class PluginConfig {
 			"----------------"
 		})
 		private boolean disableCollision = true;
+		private boolean disableChamberedEnderpearl = true;
 	}
 }
 
