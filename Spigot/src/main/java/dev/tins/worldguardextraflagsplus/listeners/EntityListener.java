@@ -142,7 +142,16 @@ public class EntityListener implements Listener
         // Case-insensitive check against flag set
         for (String item : set)
         {
-            if (item != null && item.equalsIgnoreCase(name))
+            if (item == null)
+            {
+                continue;
+            }
+            if (item.equalsIgnoreCase(name))
+            {
+                return true;
+            }
+            // One flag value blocks every spear tier (1.21.11+)
+            if (item.equalsIgnoreCase("SPEAR") && BlockableItemFlag.isSpearMaterial(name))
             {
                 return true;
             }

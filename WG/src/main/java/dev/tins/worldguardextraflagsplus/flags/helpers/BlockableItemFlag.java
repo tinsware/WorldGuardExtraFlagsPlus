@@ -12,6 +12,17 @@ public class BlockableItemFlag extends Flag<String>
 	// Hardcoded list of items that can be blocked by disable-completely flag (or deprecated permit-completely flag)
 	// TODO: Add more items in future updates
 	private static final Set<String> BLOCKABLE_ITEMS = new HashSet<>();
+
+	/** Vanilla spear tiers (1.21.11+). Also allow flag value SPEAR to block all of these at once. */
+	private static final Set<String> SPEAR_MATERIALS = Set.of(
+			"WOODEN_SPEAR",
+			"STONE_SPEAR",
+			"COPPER_SPEAR",
+			"IRON_SPEAR",
+			"GOLDEN_SPEAR",
+			"DIAMOND_SPEAR",
+			"NETHERITE_SPEAR");
+
 	static
 	{
 		BLOCKABLE_ITEMS.add("MACE");
@@ -19,6 +30,13 @@ public class BlockableItemFlag extends Flag<String>
 		BLOCKABLE_ITEMS.add("WIND_CHARGE");
 		BLOCKABLE_ITEMS.add("TOTEM_OF_UNDYING");
 		BLOCKABLE_ITEMS.add("TRIDENT");
+		BLOCKABLE_ITEMS.addAll(SPEAR_MATERIALS);
+		BLOCKABLE_ITEMS.add("SPEAR");
+	}
+
+	public static boolean isSpearMaterial(String materialName)
+	{
+		return materialName != null && SPEAR_MATERIALS.contains(materialName);
 	}
 
 	public BlockableItemFlag(String name)
