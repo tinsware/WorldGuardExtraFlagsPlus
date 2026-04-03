@@ -29,7 +29,15 @@ import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.flags.Flag;
 
 import lombok.Getter;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.event.PacketListenerAbstract;
+import com.github.retrooper.packetevents.event.PacketListenerPriority;
+
+import dev.tins.worldguardextraflagsplus.disablecompletely.DisableCompletelyQuery;
 import dev.tins.worldguardextraflagsplus.flags.Flags;
+import dev.tins.worldguardextraflagsplus.packetevents.DisableCompletelyPacketEventsListener;
+import dev.tins.worldguardextraflagsplus.protocollib.DisableCompletelyProtocolLibListener;
 import dev.tins.worldguardextraflagsplus.protocollib.ProtocolLibHelper;
 import dev.tins.worldguardextraflagsplus.updater.UpdateChecker;
 import dev.tins.worldguardextraflagsplus.wg.WorldGuardUtils;
@@ -49,6 +57,11 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 	@Getter private SessionManager sessionManager;
 
 	@Getter private ProtocolLibHelper protocolLibHelper;
+
+	/** PacketEvents hook for disable-completely (spear Lunge / STAB, etc.); unregistered in {@link #onDisable()}. */
+	private PacketListenerAbstract disableCompletelyPacketEventsListener;
+	/** ProtocolLib fallback when PacketEvents is not installed. */
+	private com.comphenix.protocol.events.PacketListener disableCompletelyProtocolLibListener;
 	
 	// Collision flag handler (uses native Minecraft teams, no external libraries needed)
 	@Getter private boolean collisionFlagEnabled = false;
@@ -335,6 +348,8 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 		{
 			this.getServer().getPluginManager().registerEvents(new EntityPotionEffectEventListener(this.worldGuardPlugin, this.sessionManager), this);
 		}
+
+		this.registerDisableCompletelyPacketHooks();
 		
 		for(World world : this.getServer().getWorlds())
 		{
@@ -580,6 +595,66 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 		});
 	}
 
+	/**
+	 * When {@code disable-completely} is enabled, registers PacketEvents (preferred) or ProtocolLib listeners
+	 * so spear Lunge and other item actions cannot bypass Bukkit-only checks.
+	 */
+	private void registerDisableCompletelyPacketHooks()
+	{
+		if (!Config.isFlagEnabled("disable-completely"))
+		{
+			return;
+		}
+		DisableCompletelyQuery query = new DisableCompletelyQuery(this.worldGuardPlugin, this.regionContainer, this.sessionManager);
+
+		Plugin packetEventsPlugin = this.getServer().getPluginManager().getPlugin("packetevents");
+		if (packetEventsPlugin == null)
+		{
+			packetEventsPlugin = this.getServer().getPluginManager().getPlugin("PacketEvents");
+		}
+		if (packetEventsPlugin != null && packetEventsPlugin.isEnabled())
+		{
+			try
+			{
+				this.disableCompletelyPacketEventsListener = new DisableCompletelyPacketEventsListener(query)
+						.asAbstract(PacketListenerPriority.LOW);
+				PacketEvents.getAPI().getEventManager().registerListener(this.disableCompletelyPacketEventsListener);
+				this.getLogger().info("[disable-completely] PacketEvents packet hook registered (STAB / use / interact).");
+			}
+			catch (Throwable t)
+			{
+				this.getLogger().warning("[disable-completely] PacketEvents hook failed: " +
+						(t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName()));
+				this.disableCompletelyPacketEventsListener = null;
+			}
+			if (this.disableCompletelyPacketEventsListener != null)
+			{
+				return;
+			}
+		}
+
+		Plugin protocolLib = this.getServer().getPluginManager().getPlugin("ProtocolLib");
+		if (protocolLib != null && protocolLib.isEnabled())
+		{
+			try
+			{
+				this.disableCompletelyProtocolLibListener = new DisableCompletelyProtocolLibListener(this, query);
+				ProtocolLibrary.getProtocolManager().addPacketListener(this.disableCompletelyProtocolLibListener);
+				this.getLogger().info("[disable-completely] ProtocolLib packet hook registered (fallback; install PacketEvents for primary support).");
+			}
+			catch (Throwable t)
+			{
+				this.getLogger().warning("[disable-completely] ProtocolLib packet hook failed: " +
+						(t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName()));
+				this.disableCompletelyProtocolLibListener = null;
+			}
+		}
+		else if (this.disableCompletelyPacketEventsListener == null)
+		{
+			this.getLogger().info("[disable-completely] No PacketEvents or ProtocolLib: spear Lunge (STAB) may bypass Bukkit events. Install PacketEvents on the server.");
+		}
+	}
+
 	private void checkForConflictingPlugins()
 	{
 		// Check for WorldGuardExtraFlags (old plugin) - this would cause conflicts
@@ -610,6 +685,33 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 	@Override
 	public void onDisable()
 	{
+		if (this.disableCompletelyPacketEventsListener != null)
+		{
+			try
+			{
+				PacketEvents.getAPI().getEventManager().unregisterListener(this.disableCompletelyPacketEventsListener);
+			}
+			catch (Throwable t)
+			{
+				this.getLogger().warning("[disable-completely] PacketEvents unregister failed: " +
+						(t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName()));
+			}
+			this.disableCompletelyPacketEventsListener = null;
+		}
+		if (this.disableCompletelyProtocolLibListener != null)
+		{
+			try
+			{
+				ProtocolLibrary.getProtocolManager().removePacketListener(this.disableCompletelyProtocolLibListener);
+			}
+			catch (Throwable t)
+			{
+				this.getLogger().warning("[disable-completely] ProtocolLib unregister failed: " +
+						(t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName()));
+			}
+			this.disableCompletelyProtocolLibListener = null;
+		}
+
 		// Cleanup collision handler
 		if (this.collisionPacketHandler != null)
 		{

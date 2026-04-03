@@ -29,9 +29,9 @@ import org.bukkit.event.world.PortalCreateEvent;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.flags.StateFlag.State;
 
-import lombok.RequiredArgsConstructor;
 import dev.tins.worldguardextraflagsplus.flags.Flags;
 import dev.tins.worldguardextraflagsplus.flags.helpers.BlockableItemFlag;
+import dev.tins.worldguardextraflagsplus.disablecompletely.DisableCompletelyQuery;
 import dev.tins.worldguardextraflagsplus.Messages;
 import dev.tins.worldguardextraflagsplus.Config;
 
@@ -39,15 +39,21 @@ import java.util.Set;
 import java.util.Map;
 import java.util.HashMap;
 
-@RequiredArgsConstructor
 public class EntityListener implements Listener
 {
 	private final WorldGuardPlugin worldGuardPlugin;
 	private final RegionContainer regionContainer;
 	private final SessionManager sessionManager;
 
-	// Get blockable items list from the flag helper (single source of truth)
-	private static final Set<String> BLOCKABLE_ITEMS = BlockableItemFlag.getBlockableItems();
+	private final DisableCompletelyQuery disableCompletelyQuery;
+
+	public EntityListener(WorldGuardPlugin worldGuardPlugin, RegionContainer regionContainer, SessionManager sessionManager)
+	{
+		this.worldGuardPlugin = worldGuardPlugin;
+		this.regionContainer = regionContainer;
+		this.sessionManager = sessionManager;
+		this.disableCompletelyQuery = new DisableCompletelyQuery(worldGuardPlugin, regionContainer, sessionManager);
+	}
 	
 	// Workbench type mappings
 	private static final Map<Material, String> WORKBENCH_TYPE_MAP = new HashMap<>();
@@ -118,51 +124,14 @@ public class EntityListener implements Listener
 		}
 	}
 
-    private boolean isBlocked(LocalPlayer localPlayer, Material material)
+    private boolean isBlocked(Player player, Material material)
     {
-        String name = material.name();
-        
-        // Early exit: only check flag if item is in our hardcoded blockable list
-        if (!BLOCKABLE_ITEMS.contains(name))
-        {
-            return false;
-        }
-        
-        // Check if flag is set in region (inheritance handled automatically by WorldGuard)
-        ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(localPlayer.getLocation());
-        
-        // Check flag (disable-completely)
-        java.util.Set<String> set = regions.queryValue(localPlayer, Flags.DISABLE_COMPLETELY);
-        
-        if (set == null || set.isEmpty())
-        {
-            return false;
-        }
-        
-        // Case-insensitive check against flag set
-        for (String item : set)
-        {
-            if (item == null)
-            {
-                continue;
-            }
-            if (item.equalsIgnoreCase(name))
-            {
-                return true;
-            }
-            // One flag value blocks every spear tier (1.21.11+)
-            if (item.equalsIgnoreCase("SPEAR") && BlockableItemFlag.isSpearMaterial(name))
-            {
-                return true;
-            }
-        }
-        return false;
+        return this.disableCompletelyQuery.isDisabled(player, material);
     }
 
-    private void sendBlocked(Player player, String itemName)
+    private void sendBlocked(Player player, Material material)
     {
-        // Use cooldown-aware message sending
-        Messages.sendMessageWithCooldown(player, "disable-completely-blocked", "item", itemName);
+        this.disableCompletelyQuery.sendBlocked(player, material);
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = false)
@@ -186,10 +155,11 @@ public class EntityListener implements Listener
         }
 
         // Check if item is blocked
-        if (this.isBlocked(localPlayer, mat))
+        if (this.isBlocked(player, mat))
         {
-            // Special handling for tridents with Riptide - prevent the hold interaction
-            if (mat == Material.TRIDENT && item.containsEnchantment(org.bukkit.enchantments.Enchantment.RIPTIDE))
+            // Special handling for tridents/spears with Riptide - prevent the hold interaction
+            if ((mat == Material.TRIDENT || BlockableItemFlag.isSpearMaterial(mat.name()))
+                    && item.containsEnchantment(org.bukkit.enchantments.Enchantment.RIPTIDE))
             {
                 // Check if it's any right-click action (when player starts holding)
                 // Block all right-click types to ensure Riptide cannot be activated
@@ -198,14 +168,14 @@ public class EntityListener implements Listener
                     || action == org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK)
                 {
                     event.setCancelled(true);
-                    this.sendBlocked(player, mat.name());
+                    this.sendBlocked(player, mat);
                     return;
                 }
             }
             
             // For other items or non-riptide interactions, cancel normally
             event.setCancelled(true);
-            this.sendBlocked(player, mat.name());
+            this.sendBlocked(player, mat);
         }
     }
 
@@ -311,10 +281,10 @@ public class EntityListener implements Listener
         }
         ItemStack item = player.getInventory().getItemInMainHand();
         Material mat = item != null ? item.getType() : Material.AIR;
-        if (mat != Material.AIR && this.isBlocked(localPlayer, mat))
+        if (mat != Material.AIR && this.isBlocked(player, mat))
         {
             event.setCancelled(true);
-            this.sendBlocked(player, mat.name());
+            this.sendBlocked(player, mat);
         }
     }
 
@@ -332,10 +302,10 @@ public class EntityListener implements Listener
         }
         ItemStack item = player.getInventory().getItemInMainHand();
         Material mat = item != null ? item.getType() : Material.AIR;
-        if (mat != Material.AIR && this.isBlocked(localPlayer, mat))
+        if (mat != Material.AIR && this.isBlocked(player, mat))
         {
             event.setCancelled(true);
-            this.sendBlocked(player, mat.name());
+            this.sendBlocked(player, mat);
         }
     }
 
@@ -354,10 +324,10 @@ public class EntityListener implements Listener
         // Try to infer from main hand item
         ItemStack item = player.getInventory().getItemInMainHand();
         Material mat = item != null ? item.getType() : Material.AIR;
-        if (mat != Material.AIR && this.isBlocked(localPlayer, mat))
+        if (mat != Material.AIR && this.isBlocked(player, mat))
         {
             event.setCancelled(true);
-            this.sendBlocked(player, mat.name());
+            this.sendBlocked(player, mat);
         }
     }
 
@@ -377,20 +347,20 @@ public class EntityListener implements Listener
             return;
         }
         
-        // Get the trident item from the event
+        // Get the riptide-capable item from the event
         ItemStack item = event.getItem();
         if (item == null) return;
         Material mat = item.getType();
         
-        // Check if TRIDENT is blocked
-        if (mat == Material.TRIDENT && this.isBlocked(localPlayer, mat))
+        // Check if blocked trident or spear is triggering riptide boost
+        if ((mat == Material.TRIDENT || BlockableItemFlag.isSpearMaterial(mat.name())) && this.isBlocked(player, mat))
         {
             // Cancel the event to prevent riptide boost
             if (event instanceof Cancellable cancellable)
             {
                 cancellable.setCancelled(true);
             }
-            this.sendBlocked(player, mat.name());
+            this.sendBlocked(player, mat);
             
 
             // NOTE: Velocity cancellation code commented out to avoid unnecessary tasks
@@ -550,18 +520,18 @@ public class EntityListener implements Listener
 		Material totemMaterial = Material.TOTEM_OF_UNDYING;
 		
 		// Check main hand totem
-		if (mainHand != null && mainHand.getType() == totemMaterial && this.isBlocked(localPlayer, totemMaterial))
+		if (mainHand != null && mainHand.getType() == totemMaterial && this.isBlocked(player, totemMaterial))
 		{
 			event.setCancelled(true);
-			this.sendBlocked(player, totemMaterial.name());
+			this.sendBlocked(player, totemMaterial);
 			return;
 		}
 		
 		// Check off hand totem
-		if (offHand != null && offHand.getType() == totemMaterial && this.isBlocked(localPlayer, totemMaterial))
+		if (offHand != null && offHand.getType() == totemMaterial && this.isBlocked(player, totemMaterial))
 		{
 			event.setCancelled(true);
-			this.sendBlocked(player, totemMaterial.name());
+			this.sendBlocked(player, totemMaterial);
 		}
 	}
 
