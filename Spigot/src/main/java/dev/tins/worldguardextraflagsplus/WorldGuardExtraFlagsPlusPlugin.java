@@ -29,15 +29,9 @@ import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.flags.Flag;
 
 import lombok.Getter;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.github.retrooper.packetevents.PacketEvents;
-import com.github.retrooper.packetevents.event.PacketListenerAbstract;
-import com.github.retrooper.packetevents.event.PacketListenerPriority;
 
 import dev.tins.worldguardextraflagsplus.disablecompletely.DisableCompletelyQuery;
 import dev.tins.worldguardextraflagsplus.flags.Flags;
-import dev.tins.worldguardextraflagsplus.packetevents.DisableCompletelyPacketEventsListener;
-import dev.tins.worldguardextraflagsplus.protocollib.DisableCompletelyProtocolLibListener;
 import dev.tins.worldguardextraflagsplus.protocollib.ProtocolLibHelper;
 import dev.tins.worldguardextraflagsplus.updater.UpdateChecker;
 import dev.tins.worldguardextraflagsplus.wg.WorldGuardUtils;
@@ -58,10 +52,16 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 
 	@Getter private ProtocolLibHelper protocolLibHelper;
 
-	/** PacketEvents hook for disable-completely (spear Lunge / STAB, etc.); unregistered in {@link #onDisable()}. */
-	private PacketListenerAbstract disableCompletelyPacketEventsListener;
-	/** ProtocolLib fallback when PacketEvents is not installed. */
-	private com.comphenix.protocol.events.PacketListener disableCompletelyProtocolLibListener;
+	/**
+	 * PacketEvents abstract listener from {@code asAbstract(...)} — stored as {@link Object} so this class
+	 * never references PacketEvents API types when PacketEvents is not installed (optional softdepend).
+	 */
+	private Object disableCompletelyPacketEventsListener;
+	/**
+	 * ProtocolLib fallback listener instance — stored as {@link Object} so this class never references
+	 * ProtocolLib types when ProtocolLib is not installed (optional softdepend).
+	 */
+	private Object disableCompletelyProtocolLibListener;
 	
 	// Collision flag handler (uses native Minecraft teams, no external libraries needed)
 	@Getter private boolean collisionFlagEnabled = false;
@@ -616,9 +616,7 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 		{
 			try
 			{
-				this.disableCompletelyPacketEventsListener = new DisableCompletelyPacketEventsListener(query)
-						.asAbstract(PacketListenerPriority.LOW);
-				PacketEvents.getAPI().getEventManager().registerListener(this.disableCompletelyPacketEventsListener);
+				this.registerDisableCompletelyPacketEventsHookReflect(query);
 				this.getLogger().info("[disable-completely] PacketEvents packet hook registered (STAB / use / interact).");
 			}
 			catch (Throwable t)
@@ -638,8 +636,7 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 		{
 			try
 			{
-				this.disableCompletelyProtocolLibListener = new DisableCompletelyProtocolLibListener(this, query);
-				ProtocolLibrary.getProtocolManager().addPacketListener(this.disableCompletelyProtocolLibListener);
+				this.registerDisableCompletelyProtocolLibHookReflect(query);
 				this.getLogger().info("[disable-completely] ProtocolLib packet hook registered (fallback; install PacketEvents for primary support).");
 			}
 			catch (Throwable t)
@@ -652,6 +649,109 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 		else if (this.disableCompletelyPacketEventsListener == null)
 		{
 			this.getLogger().info("[disable-completely] No PacketEvents or ProtocolLib: spear Lunge (STAB) may bypass Bukkit events. Install PacketEvents on the server.");
+		}
+	}
+
+	/**
+	 * Registers disable-completely PacketEvents listener via reflection so this class never loads PacketEvents
+	 * API types when PacketEvents is not installed.
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private void registerDisableCompletelyPacketEventsHookReflect(DisableCompletelyQuery query) throws Exception
+	{
+		ClassLoader cl = this.getClass().getClassLoader();
+		Class<?> listenerImplClass = Class.forName(
+				"dev.tins.worldguardextraflagsplus.packetevents.DisableCompletelyPacketEventsListener",
+				true,
+				cl);
+		Object listenerImpl = listenerImplClass.getConstructor(DisableCompletelyQuery.class).newInstance(query);
+
+		Class<?> packetListenerIface = Class.forName("com.github.retrooper.packetevents.event.PacketListener", true, cl);
+		Class<?> priorityEnum = Class.forName("com.github.retrooper.packetevents.event.PacketListenerPriority", true, cl);
+		Object lowPriority = Enum.valueOf((Class<? extends Enum>) priorityEnum, "LOW");
+		java.lang.reflect.Method asAbstract = packetListenerIface.getMethod("asAbstract", priorityEnum);
+		Object abstractListener = asAbstract.invoke(listenerImpl, lowPriority);
+
+		Class<?> packetEventsClass = Class.forName("com.github.retrooper.packetevents.PacketEvents", true, cl);
+		Object api = packetEventsClass.getMethod("getAPI").invoke(null);
+		Object eventManager = api.getClass().getMethod("getEventManager").invoke(api);
+		Class<?> listenerCommonClass = Class.forName("com.github.retrooper.packetevents.event.PacketListenerCommon", true,
+				cl);
+		eventManager.getClass().getMethod("registerListener", listenerCommonClass).invoke(eventManager, abstractListener);
+
+		this.disableCompletelyPacketEventsListener = abstractListener;
+	}
+
+	private void unregisterDisableCompletelyPacketEventsHookReflect()
+	{
+		if (this.disableCompletelyPacketEventsListener == null)
+		{
+			return;
+		}
+		try
+		{
+			ClassLoader cl = this.getClass().getClassLoader();
+			Class<?> packetEventsClass = Class.forName("com.github.retrooper.packetevents.PacketEvents", true, cl);
+			Object api = packetEventsClass.getMethod("getAPI").invoke(null);
+			Object eventManager = api.getClass().getMethod("getEventManager").invoke(api);
+			Class<?> listenerCommonClass = Class.forName("com.github.retrooper.packetevents.event.PacketListenerCommon", true,
+					cl);
+			eventManager.getClass().getMethod("unregisterListener", listenerCommonClass).invoke(eventManager,
+					this.disableCompletelyPacketEventsListener);
+		}
+		catch (Throwable t)
+		{
+			this.getLogger().warning("[disable-completely] PacketEvents unregister failed: " +
+					(t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName()));
+		}
+		finally
+		{
+			this.disableCompletelyPacketEventsListener = null;
+		}
+	}
+
+	/**
+	 * Registers DisableCompletelyProtocolLibListener via reflection so the main plugin class never loads
+	 * ProtocolLib API types when ProtocolLib is absent.
+	 */
+	private void registerDisableCompletelyProtocolLibHookReflect(DisableCompletelyQuery query) throws Exception
+	{
+		ClassLoader cl = this.getClass().getClassLoader();
+		Class<?> listenerClass = Class.forName(
+				"dev.tins.worldguardextraflagsplus.protocollib.DisableCompletelyProtocolLibListener",
+				true,
+				cl);
+		Object listener = listenerClass.getConstructor(Plugin.class, DisableCompletelyQuery.class).newInstance(this, query);
+		Class<?> protocolLibraryClass = Class.forName("com.comphenix.protocol.ProtocolLibrary", true, cl);
+		Object protocolManager = protocolLibraryClass.getMethod("getProtocolManager").invoke(null);
+		Class<?> packetListenerClass = Class.forName("com.comphenix.protocol.events.PacketListener", true, cl);
+		protocolManager.getClass().getMethod("addPacketListener", packetListenerClass).invoke(protocolManager, listener);
+		this.disableCompletelyProtocolLibListener = listener;
+	}
+
+	private void unregisterDisableCompletelyProtocolLibHookReflect()
+	{
+		if (this.disableCompletelyProtocolLibListener == null)
+		{
+			return;
+		}
+		try
+		{
+			ClassLoader cl = this.getClass().getClassLoader();
+			Class<?> protocolLibraryClass = Class.forName("com.comphenix.protocol.ProtocolLibrary", true, cl);
+			Object protocolManager = protocolLibraryClass.getMethod("getProtocolManager").invoke(null);
+			Class<?> packetListenerClass = Class.forName("com.comphenix.protocol.events.PacketListener", true, cl);
+			protocolManager.getClass().getMethod("removePacketListener", packetListenerClass).invoke(protocolManager,
+					this.disableCompletelyProtocolLibListener);
+		}
+		catch (Throwable t)
+		{
+			this.getLogger().warning("[disable-completely] ProtocolLib unregister failed: " +
+					(t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName()));
+		}
+		finally
+		{
+			this.disableCompletelyProtocolLibListener = null;
 		}
 	}
 
@@ -685,32 +785,8 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 	@Override
 	public void onDisable()
 	{
-		if (this.disableCompletelyPacketEventsListener != null)
-		{
-			try
-			{
-				PacketEvents.getAPI().getEventManager().unregisterListener(this.disableCompletelyPacketEventsListener);
-			}
-			catch (Throwable t)
-			{
-				this.getLogger().warning("[disable-completely] PacketEvents unregister failed: " +
-						(t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName()));
-			}
-			this.disableCompletelyPacketEventsListener = null;
-		}
-		if (this.disableCompletelyProtocolLibListener != null)
-		{
-			try
-			{
-				ProtocolLibrary.getProtocolManager().removePacketListener(this.disableCompletelyProtocolLibListener);
-			}
-			catch (Throwable t)
-			{
-				this.getLogger().warning("[disable-completely] ProtocolLib unregister failed: " +
-						(t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName()));
-			}
-			this.disableCompletelyProtocolLibListener = null;
-		}
+		this.unregisterDisableCompletelyPacketEventsHookReflect();
+		this.unregisterDisableCompletelyProtocolLibHookReflect();
 
 		// Cleanup collision handler
 		if (this.collisionPacketHandler != null)
