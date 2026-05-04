@@ -30,6 +30,7 @@
 			<id>essentials-releases</id>
 			<url>https://repo.essentialsx.net/releases/</url>
 		</repository>
+		<!-- Paper API unique here; keep last so EngineHub/Hub coords are not probed against Paper first -->
 		<repository>
 			<id>paper-repo</id>
 			<url>https://papermc.io/repo/repository/maven-public/</url>
@@ -38,9 +39,9 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>org.spigotmc</groupId>
-			<artifactId>spigot-api</artifactId>
-			<version>${spigot.api.version}</version>
+			<groupId>io.papermc.paper</groupId>
+			<artifactId>paper-api</artifactId>
+			<version>${paper.api.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>

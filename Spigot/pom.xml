@@ -85,7 +85,7 @@
 			<id>modrinth</id>
 			<url>https://api.modrinth.com/maven/</url>
 		</repository>
-		<!-- Paper-hosted deps last: avoids failed metadata lookups for EngineHub/Spigot coords -->
+		<!-- Paper API unique here; keep last so EngineHub/Hub coords are not probed against Paper first -->
 		<repository>
 			<id>paper-repo</id>
 			<url>https://papermc.io/repo/repository/maven-public/</url>
@@ -100,12 +100,7 @@
 			<scope>compile</scope>
 		</dependency>
 
-		<dependency>
-			<groupId>org.spigotmc</groupId>
-			<artifactId>spigot-api</artifactId>
-			<version>${spigot.api.version}</version>
-			<scope>provided</scope>
-		</dependency>
+		<!-- Minecraft API: Paper 26.x replaces standalone Spigot API dependency -->
 		<dependency>
 			<groupId>io.papermc.paper</groupId>
 			<artifactId>paper-api</artifactId>
