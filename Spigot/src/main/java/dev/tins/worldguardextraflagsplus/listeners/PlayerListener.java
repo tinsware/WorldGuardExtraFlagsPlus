@@ -31,6 +31,7 @@ import com.sk89q.worldguard.protection.flags.StateFlag.State;
 import com.sk89q.worldguard.session.Session;
 
 import lombok.RequiredArgsConstructor;
+import dev.tins.worldguardextraflagsplus.Config;
 import dev.tins.worldguardextraflagsplus.WorldGuardExtraFlagsPlusPlugin;
 import dev.tins.worldguardextraflagsplus.flags.Flags;
 import dev.tins.worldguardextraflagsplus.wg.WorldGuardUtils;
@@ -178,8 +179,20 @@ public class PlayerListener implements Listener
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerItemConsumeEvent(PlayerItemConsumeEvent event)
 	{
+		if (!Config.isFlagEnabled("give-effects"))
+		{
+			return;
+		}
+
 		Player player = event.getPlayer();
-		
+
+		GiveEffectsFlagHandler giveEffects = this.sessionManager.get(this.worldGuardPlugin.wrapPlayer(player))
+				.getHandler(GiveEffectsFlagHandler.class);
+		if (giveEffects == null)
+		{
+			return;
+		}
+
 		ItemMeta itemMeta = event.getItem().getItemMeta();
 		if (itemMeta instanceof PotionMeta potionMeta)
 		{
@@ -191,14 +204,14 @@ public class PlayerListener implements Listener
 
 			effects.addAll(potionMeta.getCustomEffects());
 
-			this.sessionManager.get(this.worldGuardPlugin.wrapPlayer(player)).getHandler(GiveEffectsFlagHandler.class).drinkPotion(player, effects);
+			giveEffects.drinkPotion(player, effects);
 		}
 		else
 		{
 			Material material = event.getItem().getType();
 			if (material == Material.MILK_BUCKET)
 			{
-				this.sessionManager.get(this.worldGuardPlugin.wrapPlayer(player)).getHandler(GiveEffectsFlagHandler.class).drinkMilk(player);
+				giveEffects.drinkMilk(player);
 			}
 		}
 	}
@@ -211,21 +224,37 @@ public class PlayerListener implements Listener
 		Session wgSession = this.sessionManager.getIfPresent(this.worldGuardPlugin.wrapPlayer(player));
 		if (wgSession != null)
 		{
-			Boolean value = wgSession.getHandler(FlyFlagHandler.class).getCurrentValue();
+			if (!Config.isFlagEnabled("fly"))
+			{
+				return;
+			}
+			FlyFlagHandler flyHandler = wgSession.getHandler(FlyFlagHandler.class);
+			if (flyHandler == null)
+			{
+				return;
+			}
+			Boolean value = flyHandler.getCurrentValue();
 			if (value != null)
 			{
 				WorldGuardUtils.getScheduler().runAtEntity(player, (wrappedTask) -> checkFlyStatus(player, player.getAllowFlight()));
 			}
+			return;
 		}
-		else
-		{
-			WorldGuardUtils.getScheduler().runAtEntity(player, (wrappedTask) -> checkFlyStatus(player, null));
-		}
+		WorldGuardUtils.getScheduler().runAtEntity(player, (wrappedTask) -> checkFlyStatus(player, null));
 	}
 	
 	private void checkFlyStatus(Player player, Boolean originalValueOverwrite)
 	{
+		if (!Config.isFlagEnabled("fly"))
+		{
+			return;
+		}
+
 		FlyFlagHandler flyFlagHandler = this.sessionManager.get(this.worldGuardPlugin.wrapPlayer(player)).getHandler(FlyFlagHandler.class);
+		if (flyFlagHandler == null)
+		{
+			return;
+		}
 
 		Boolean currentValue = flyFlagHandler.getCurrentValue();
 		if (currentValue != null)
@@ -255,11 +284,18 @@ public class PlayerListener implements Listener
 	public void onPlayerJoinEvent(PlayerJoinEvent event)
 	{
 		Player player = event.getPlayer();
-		
-		Boolean flyValue = this.sessionManager.get(this.worldGuardPlugin.wrapPlayer(player)).getHandler(FlyFlagHandler.class).getCurrentValue();
-		if (flyValue != null)
+
+		if (Config.isFlagEnabled("fly"))
 		{
-			WorldGuardUtils.getScheduler().runAtEntity(player, (wrappedTask) -> player.setAllowFlight(flyValue));
+			FlyFlagHandler flyHandler = this.sessionManager.get(this.worldGuardPlugin.wrapPlayer(player)).getHandler(FlyFlagHandler.class);
+			if (flyHandler != null)
+			{
+				Boolean flyValue = flyHandler.getCurrentValue();
+				if (flyValue != null)
+				{
+					WorldGuardUtils.getScheduler().runAtEntity(player, (wrappedTask) -> player.setAllowFlight(flyValue));
+				}
+			}
 		}
 		
 		// Check collision flag for players already in regions on join
@@ -289,10 +325,17 @@ public class PlayerListener implements Listener
 
 		//Some plugins toggle flight off on world change based on permissions,
 		//so we need to make sure to force the flight status.
-		Boolean flyValue = this.sessionManager.get(this.worldGuardPlugin.wrapPlayer(player)).getHandler(FlyFlagHandler.class).getCurrentValue();
-		if (flyValue != null)
+		if (Config.isFlagEnabled("fly"))
 		{
-			WorldGuardUtils.getScheduler().runAtEntity(player, (wrappedTask) -> player.setAllowFlight(flyValue));
+			FlyFlagHandler flyHandler = this.sessionManager.get(this.worldGuardPlugin.wrapPlayer(player)).getHandler(FlyFlagHandler.class);
+			if (flyHandler != null)
+			{
+				Boolean flyValue = flyHandler.getCurrentValue();
+				if (flyValue != null)
+				{
+					WorldGuardUtils.getScheduler().runAtEntity(player, (wrappedTask) -> player.setAllowFlight(flyValue));
+				}
+			}
 		}
 		
 		// Check collision flag on world change

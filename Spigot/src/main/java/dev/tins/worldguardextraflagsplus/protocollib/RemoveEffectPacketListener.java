@@ -9,6 +9,7 @@ import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketEvent;
 import com.sk89q.worldguard.session.Session;
 
+import dev.tins.worldguardextraflagsplus.Config;
 import dev.tins.worldguardextraflagsplus.WorldGuardExtraFlagsPlusPlugin;
 import dev.tins.worldguardextraflagsplus.wg.handlers.GiveEffectsFlagHandler;
 
@@ -22,6 +23,11 @@ public class RemoveEffectPacketListener extends PacketAdapter
 	@Override
 	public void onPacketSending(PacketEvent event)
 	{
+		if (!Config.isFlagEnabled("give-effects"))
+		{
+			return;
+		}
+
 		if (!event.isCancelled())
 		{
 			Player player = event.getPlayer();
@@ -35,7 +41,7 @@ public class RemoveEffectPacketListener extends PacketAdapter
 				Session session = WorldGuard.getInstance().getPlatform().getSessionManager().get(WorldGuardPlugin.inst().wrapPlayer(player));
 				
 				GiveEffectsFlagHandler giveEffectsHandler = session.getHandler(GiveEffectsFlagHandler.class);
-				if (giveEffectsHandler.isSupressRemovePotionPacket())
+				if (giveEffectsHandler != null && giveEffectsHandler.isSupressRemovePotionPacket())
 				{
 					event.setCancelled(true);
 				}
