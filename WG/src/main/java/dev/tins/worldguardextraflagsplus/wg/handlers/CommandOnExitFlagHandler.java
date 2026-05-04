@@ -79,11 +79,11 @@ public class CommandOnExitFlagHandler extends Handler
 				if (!commands.contains(commands_) && commands_.size() > 0)
 				{
 					for (String command : commands_) {
-						String processedCommand = command.substring(1)
-							.replace("%username%", player.getName())
-							.replace("%player%", player.getName())
-							.replace("{player}", player.getName())
-							.replace("{username}", player.getName());
+						String processedCommand = CommandPlaceholderUtil.prepareForDispatch(player, command);
+						if (processedCommand.isEmpty())
+						{
+							continue;
+						}
 						WorldGuardUtils.getScheduler().runAtEntity(bukkitPlayer, (wrappedTask) -> Bukkit.getServer().dispatchCommand(bukkitPlayer, processedCommand));
 					}
 

@@ -26,68 +26,85 @@ public class CommandOnEntryFlagHandler extends Handler
 	{
 		return new Factory();
 	}
-	
-    public static class Factory extends Handler.Factory<CommandOnEntryFlagHandler>
-    {
+
+	public static class Factory extends Handler.Factory<CommandOnEntryFlagHandler>
+	{
 		@Override
-        public CommandOnEntryFlagHandler create(Session session)
-        {
-            return new CommandOnEntryFlagHandler(session);
-        }
-    }
-	
+		public CommandOnEntryFlagHandler create(Session session)
+		{
+			return new CommandOnEntryFlagHandler(session);
+		}
+	}
+
 	private Collection<Set<String>> lastCommands;
-	    
+
 	protected CommandOnEntryFlagHandler(Session session)
 	{
 		super(session);
-		
+
 		this.lastCommands = new ArrayList<>();
+	}
+
+	@Override
+	public void initialize(LocalPlayer player, Location current, ApplicableRegionSet set)
+	{
+		Collection<Set<String>> commands = set.queryAllValues(player, Flags.COMMAND_ON_ENTRY);
+		this.tryDispatch(player, (World) current.getExtent(), commands);
+		this.finishLastCommandsTracking(set, commands);
 	}
 
 	@Override
 	public boolean onCrossBoundary(LocalPlayer player, Location from, Location to, ApplicableRegionSet toSet, Set<ProtectedRegion> entered, Set<ProtectedRegion> exited, MoveType moveType)
 	{
 		Collection<Set<String>> commands = toSet.queryAllValues(player, Flags.COMMAND_ON_ENTRY);
+		this.tryDispatch(player, (World) to.getExtent(), commands);
+		this.finishLastCommandsTracking(toSet, commands);
+		return true;
+	}
 
-		if (!this.getSession().getManager().hasBypass(player, (World) to.getExtent()))
+	private void tryDispatch(LocalPlayer player, World world, Collection<Set<String>> commands)
+	{
+		if (this.getSession().getManager().hasBypass(player, world))
 		{
-			for(Set<String> commands_ : commands)
-			{
-				if (!this.lastCommands.contains(commands_) && commands_.size() > 0)
-				{
-					org.bukkit.entity.Player bukkitPlayer = ((BukkitPlayer) player).getPlayer();
-					for (String command : commands_) {
-						String processedCommand = command.substring(1)
-							.replace("%username%", player.getName())
-							.replace("%player%", player.getName())
-							.replace("{player}", player.getName())
-							.replace("{username}", player.getName());
-						WorldGuardUtils.getScheduler().runAtEntity(bukkitPlayer, (wrappedTask) -> Bukkit.getServer().dispatchCommand(bukkitPlayer, processedCommand));
-					}
+			return;
+		}
 
-					break;
+		org.bukkit.entity.Player bukkitPlayer = ((BukkitPlayer) player).getPlayer();
+
+		for (Set<String> commands_ : commands)
+		{
+			if (!this.lastCommands.contains(commands_) && !commands_.isEmpty())
+			{
+				for (String command : commands_)
+				{
+					String processedCommand = CommandPlaceholderUtil.prepareForDispatch(player, command);
+					if (processedCommand.isEmpty())
+					{
+						continue;
+					}
+					WorldGuardUtils.getScheduler().runAtEntity(bukkitPlayer, (wrappedTask) ->
+						Bukkit.getServer().dispatchCommand(bukkitPlayer, processedCommand));
 				}
+
+				break;
 			}
 		}
-		
-		this.lastCommands = new ArrayList(commands);
-		
+	}
+
+	private void finishLastCommandsTracking(ApplicableRegionSet toSet, Collection<Set<String>> commands)
+	{
+		this.lastCommands = new ArrayList<>(commands);
+
 		if (!this.lastCommands.isEmpty())
 		{
 			for (ProtectedRegion region : toSet)
 			{
-                Set<String> commands_ = region.getFlag(Flags.COMMAND_ON_ENTRY);
-                if (commands_ != null)
-                {
-                	this.lastCommands.add(commands_);
-                }
-            }
+				Set<String> commands_ = region.getFlag(Flags.COMMAND_ON_ENTRY);
+				if (commands_ != null)
+				{
+					this.lastCommands.add(commands_);
+				}
+			}
 		}
-		
-		return true;
 	}
 }
-
-
-
