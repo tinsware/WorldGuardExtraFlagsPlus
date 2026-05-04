@@ -21,3 +21,11 @@ commands:
     usage: |
       /<command> reload - Reload messages from messages-wgefp.yml
 
+permissions:
+  worldguardextraflagsplus.worldedit.bypass:
+    description: Bypass WorldGuard worldedit DENY regions for WorldEdit / FAWE operations
+    default: false
+  worldguardextraflagsplus.worldedit.silent-deny:
+    description: Do not show chat when WorldEdit is blocked by the worldedit flag
+    default: false
+

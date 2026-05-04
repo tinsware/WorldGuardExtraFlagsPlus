@@ -66,6 +66,9 @@ public final class PluginMessages {
 	
 	@Comment("Inventory craft flag message")
 	private String inventoryCraftBlocked = "&cHey! &7You can not craft items in your inventory here!";
+
+	@Comment("WorldEdit / FAWE denied by region worldedit flag")
+	private String worldeditDenied = "&cYou can not use WorldEdit here (worldedit flag).";
 	
 	@Comment("Godmode disabled message (extra plugins and worldguard)")
 	private String godmodeDisabled = "&cHey! &7Godmode disabled in this region!";

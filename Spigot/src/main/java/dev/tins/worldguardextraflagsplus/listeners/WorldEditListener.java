@@ -41,7 +41,7 @@ public class WorldEditListener
 				return;
 			}
 
-			event.setExtent(new WorldEditFlagHandler(world, event.getExtent(), localPlayer, regionManager));
+			event.setExtent(new WorldEditFlagHandler(event.getExtent(), localPlayer, regionManager));
 		}
 	}
 }
