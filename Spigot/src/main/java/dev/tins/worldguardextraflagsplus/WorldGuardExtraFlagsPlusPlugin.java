@@ -301,6 +301,7 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 				this.getServer().getPluginManager().registerEvents(new JoinLocationListener(this.worldGuardPlugin, this.regionContainer), this);
 				this.sendJoinLocationDeprecationWarning();
 			}
+			this.getServer().getPluginManager().registerEvents(new JoinLocationPlayerJoinListener(this.worldGuardPlugin, this.regionContainer), this);
 		} else {
       this.getLogger().info(" ");
 			this.getLogger().info("[Join Location Flag] Disabled in config-wgefp.yml it will not load the flag");
