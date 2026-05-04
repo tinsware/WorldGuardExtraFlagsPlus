@@ -1,5 +1,7 @@
 # WorldGuard ExtraFlags Plus - Flag Usage Examples
 
+**Plugin release:** 4.3.13
+
 ## Usage
 
 Use the WorldGuard region flag commands as usual — all ExtraFlagsPlus flags integrate natively.

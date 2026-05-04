@@ -1,5 +1,7 @@
 # WorldGuard ExtraFlags Plus
 
+**Release 4.3.13**
+
 An advanced WorldGuard extension that adds over 30+ extra region flags for full control of player behavior, teleportation, and region rules — featuring Folia support, item blocking (Mace, Firework, Wind Charge, Totem, vanilla Spears), throwable-only blocking (`disable-throw` for egg, snowball, pearl, XP bottle), optional PacketEvents/ProtocolLib packet hooks for full `disable-completely` coverage, and fully customizable messages.
 
 > 🧱 **Folia Ready** | ⚙️ **Custom Messages** | 🪓 **Disable Mace, Totem, Trident, Spears & More** | 🥚 **Disable-throw (egg / snowball / pearl / XP bottle)**
@@ -87,7 +89,7 @@ For comprehensive usage examples and detailed flag documentation, see:
 
 | Minecraft       | WorldGuard | ExtraFlagsPlus | Support   |
 | --------------- | ---------- | -------------- | --------- |
-| 1.20 – 1.21.11 | 7.0.15+    | 4.3.12+         | ✅ Active |
+| 1.20 – 1.21.11 | 7.0.15+    | 4.3.13+         | ✅ Active |
 | 1.7 – 1.19     | Older      | ❌ No support  |           |
 
 The jar declares **`api-version: 1.21`** in `plugin.yml` so Paper **1.21.x** servers (and forks such as Canvas) load it; the project still compiles against the pinned Paper API artifact in the root `pom.xml`.
@@ -115,6 +117,7 @@ All plugin messages live in `plugins/WorldGuard/messages-wgefp.yml`.
 
 ## Support & Community
 
+- 📜 **Changelog:** [CHANGELOG.md](https://github.com/tins-dev/WorldGuardExtraFlagsPlus/blob/master/CHANGELOG.md) — release **4.3.13**
 - 💬 **Discord:** [Join our Discord server](https://discord.gg/TCJAwsdqum)
 
 ---

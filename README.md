@@ -1,6 +1,6 @@
 ﻿# WorldGuard ExtraFlags Plus
 
-A Bukkit plugin extension that provides extra flags for [WorldGuard](https://github.com/EngineHub/WorldGuard).
+**Release 4.3.13** — Bukkit plugin extension for [WorldGuard](https://github.com/EngineHub/WorldGuard).
 
 ## ⚠️ Warning DO NOT USE BOTH PLUGINS TOGETHER!
 
@@ -49,4 +49,5 @@ WorldGuard ExtraFlags Plus is extension to WorldGuard that adds 38+ new flags!
 
 ## Support & Community
 
+- 📜 **Changelog:** [CHANGELOG.md](CHANGELOG.md) (release **4.3.13**)
 - 💬 **Discord:** [Join our Discord server](https://discord.gg/TCJAwsdqum)
