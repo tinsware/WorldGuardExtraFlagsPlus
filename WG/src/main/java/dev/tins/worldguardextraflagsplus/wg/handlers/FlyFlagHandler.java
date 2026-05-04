@@ -114,6 +114,16 @@ public class FlyFlagHandler extends FlagValueChangeHandler<State>
 		this.handleValue(player, (World) to.getExtent(), null);
 		return true;
 	}
+
+	/**
+	 * Re-applies fly from {@code set} at the player's current location. Session move callbacks
+	 * sometimes do not run for PLUGIN/other teleports (e.g. portal plugins), leaving flight stale.
+	 */
+	public void refreshFlyFromApplicableSet(LocalPlayer player, ApplicableRegionSet set)
+	{
+		State state = set.queryState(player, Flags.FLY);
+		this.handleValue(player, player.getWorld(), state);
+	}
 	
 	private void handleValue(LocalPlayer player, World world, State state)
 	{

@@ -51,12 +51,50 @@ public class PlayerListener implements Listener
 	private final RegionContainer regionContainer;
 	private final SessionManager sessionManager;
 	
-	@EventHandler(priority = EventPriority.MONITOR)
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerTeleportEvent(PlayerTeleportEvent event)
 	{
 		Player player = event.getPlayer();
 		
 		player.removeMetadata(WorldGuardUtils.PREVENT_TELEPORT_LOOP_META, this.plugin);
+
+		if (!Config.isFlagEnabled("fly"))
+		{
+			return;
+		}
+
+		LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
+		if (this.sessionManager.hasBypass(localPlayer, localPlayer.getWorld()))
+		{
+			return;
+		}
+
+		if (this.sessionManager.get(localPlayer).getHandler(FlyFlagHandler.class) == null)
+		{
+			return;
+		}
+
+		WorldGuardUtils.getScheduler().runAtEntity(player, (wrappedTask) -> {
+			if (!player.isOnline())
+			{
+				return;
+			}
+
+			LocalPlayer lp = this.worldGuardPlugin.wrapPlayer(player);
+			FlyFlagHandler flyHandler = this.sessionManager.get(lp).getHandler(FlyFlagHandler.class);
+			if (flyHandler == null)
+			{
+				return;
+			}
+
+			if (this.sessionManager.hasBypass(lp, lp.getWorld()))
+			{
+				return;
+			}
+
+			ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(lp.getLocation());
+			flyHandler.refreshFlyFromApplicableSet(lp, regions);
+		});
 	}
 
 	@EventHandler
