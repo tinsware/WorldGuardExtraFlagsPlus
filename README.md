@@ -12,11 +12,13 @@ A Bukkit plugin extension that provides extra flags for [WorldGuard](https://git
 - Support for **Folia** ✅
 - New Flag **"disable-completely"** | Blocks all usage of specified items (MACE, FIREWORK_ROCKET, WIND_CHARGE, TOTEM_OF_UNDYING, TRIDENT) ✅
   - *Note: `permit-completely` is replaced. Please use `disable-completely` instead.*
+- New Flag **"disable-throw"** | Blocks **throwing** egg, snowball, ender pearl, and experience bottle when listed (`EGG`, `SNOWBALL`, `ENDER_PEARL`, `EXPERIENCE_BOTTLE`). Use **`disable-completely`** for tridents, wind charges, and other blocked items ✅
 - New Flags **"entry-min-level"** & **"entry-max-level"** | Restrict region entry based on **Player (xp) level** or **PlaceholderAPI** values ✅
 - New Flag **"player-count-limit"** | Limit maximum number of players in a region ✅
-- New **Configurable Messages** | Customize all plugin messages via `messages-wgefp.yml` in WorldGuard folder ✅
+- New **Configurable Messages** | Customize all plugin messages via `messages-wgefp.yml` in WorldGuard folder (including **`disable-throw-blocked`**, **`disable-completely-blocked`**, etc.) ✅
 - New **Message Cooldown System** | Prevents message spam with configurable cooldown (default: 3 seconds) ✅
 - **Update Checker** | Automatically checks for updates from Spigot, GitHub, and Modrinth ✅
+- **Paper 1.21.x** | `plugin.yml` declares **`api-version: 1.21`** so Paper **1.21.x** servers and forks load the plugin ✅
 - New Flag **"villager-trade"** | Control villager trading in regions ✅
 - New Flag **"disable-collision"** | Disable player collision in regions ✅
   - *Uses Minecraft's native scoreboard teams to control collision. TAB plugin is supported with API integration. May conflict with other plugins that use teams. See [documentation](public-documents/disable-collision%20flag%20documentation.md) for details.*
@@ -34,7 +36,7 @@ WorldGuard allows protecting areas of land by the creation of regions which then
 WorldGuard provides an API that 3th party plugins can use to provide their own flags.
 
 This plugin adds extra flags to allow customizing regions even further.
-WorldGuard ExtraFlags Plus is extension to WorldGuard that adds 37+ new flags!
+WorldGuard ExtraFlags Plus is extension to WorldGuard that adds 38+ new flags!
 
 ## New updates & features developed by (WorldGuard ExtraFlags Plus)
 

@@ -1,8 +1,8 @@
 [CENTER][B][SIZE=6]WorldGuard ExtraFlags Plus[/SIZE][/B][/CENTER]
 
-An advanced WorldGuard extension that adds over 30+ extra region flags for full control of player behavior, teleportation, and region rules — featuring Folia support, item blocking (Mace, Firework, Wind Charge, Totem, vanilla Spears), optional PacketEvents/ProtocolLib packet hooks for full disable-completely coverage, and fully customizable messages.
+An advanced WorldGuard extension that adds over 30+ extra region flags for full control of player behavior, teleportation, and region rules — featuring Folia support, item blocking (Mace, Firework, Wind Charge, Totem, vanilla Spears), throwable-only blocking (disable-throw for egg, snowball, pearl, XP bottle), optional PacketEvents/ProtocolLib packet hooks for full disable-completely coverage, and fully customizable messages.
 
-[CENTER]🧱 [B]Folia Ready[/B] | ⚙️ [B]Custom Messages[/B] | 🪓 [B]Disable Mace, Totem, Trident, Spears & More[/B][/CENTER]
+[CENTER]🧱 [B]Folia Ready[/B] | ⚙️ [B]Custom Messages[/B] | 🪓 [B]Disable Mace, Totem, Trident, Spears & More[/B] | 🥚 [B]Disable-throw (egg / snowball / pearl / XP bottle)[/B][/CENTER]
 [CENTER]🎚️ [B]XP-Based or PlaceholderAPI (integer output) based region entry limits[/B][/CENTER]
 
 [SIZE=4][COLOR=#E9d502][B]⚠️ WARNING DO NOT USE BOTH PLUGINS TOGETHER![/B][/COLOR][/SIZE]
@@ -20,6 +20,7 @@ If you're upgrading from [I]WorldGuardExtraFlags[/I] to [I]WorldGuardExtraFlagsP
 [*]🛡️ [B]New flag:[/B] [I]disable-completely[/I] – blocks all usage of specified items (MACE, FIREWORK_ROCKET, WIND_CHARGE, TOTEM_OF_UNDYING, TRIDENT, vanilla spear tiers 1.21.11+, plus [B]SPEAR[/B] for all tiers at once)
   [*][I]Note: permit-completely is replaced. Please use disable-completely instead.[/I]
   [*][I]Spear Lunge (packet STAB, including Lunge enchant) requires PacketEvents or ProtocolLib on the server for reliable blocking; without either, Lunge may bypass region checks.[/I]
+[*]🎯 [B]New flag:[/B] [I]disable-throw[/I] – blocks launching only these throwables: [B]EGG[/B], [B]SNOWBALL[/B], [B]ENDER_PEARL[/B], [B]EXPERIENCE_BOTTLE[/B]. Tridents and wind charges stay on [I]disable-completely[/I].
 [*]🎚️ [B]New flags:[/B] [I]entry-min-level[/I] / [I]entry-max-level[/I] – restrict entry by [B]XP level[/B] or [B]PlaceholderAPI values[/B]
 [*]💬 [B]Customizable messages[/B] via [I]messages-wgefp.yml[/I] (disable, recolor, or use placeholders)
 [*]🔁 [B]Message cooldown system[/B] – prevents spam (default: 3 seconds)
@@ -59,7 +60,8 @@ Here's a quick overview — all managed with standard WorldGuard flag commands.
 [B]New in Plus:[/B]
 
 [CODE]
-[disable-completely]  [entry-min-level / entry-max-level]
+[disable-completely]  [disable-throw]
+[entry-min-level / entry-max-level]
 [villager-trade]  [disable-collision]  [deny-item-drops / deny-item-pickup]
 [allow-block-place / deny-block-place]  [allow-block-break / deny-block-break]
 [permit-workbenches]  [inventory-craft]  [player-count-limit]
@@ -81,6 +83,8 @@ For comprehensive usage examples and detailed flag documentation, see:
 [TR][TD]1.7 – 1.19[/TD][TD]Older[/TD][TD]-[/TD][TD][COLOR=#FF0000]❌ No support[/COLOR][/TD][/TR]
 [/TABLE]
 
+The jar declares [I]api-version: 1.21[/I] in [I]plugin.yml[/I] so Paper [B]1.21.x[/B] servers (and forks such as Canvas) load it; the project still compiles against the pinned Paper API artifact in the root [I]pom.xml[/I].
+
 
 
 [B][SIZE=5]Message Customization[/SIZE][/B]
@@ -88,7 +92,7 @@ All plugin messages live in [I]plugins/WorldGuard/messages-wgefp.yml[/I].
 
 [LIST]
 [*]Edit freely to match your style
-[*]Use placeholders: [I]{required}[/I], [I]{current}[/I], [I]{item}[/I], [I]{workbench}[/I]
+[*]Use placeholders: [I]{required}[/I], [I]{current}[/I], [I]{item}[/I], [I]{workbench}[/I] (e.g. [I]disable-throw-blocked[/I] uses [I]{item}[/I])
 [*]Supports color codes: [I]&c[/I], [I]&7[/I], etc.
 [*]Disable messages with [I]""[/I]
 [*]Reload instantly using [I]/wgefp reload[/I] or [I]/wg reload[/I]

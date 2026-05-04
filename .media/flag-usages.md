@@ -17,6 +17,21 @@ Use the WorldGuard region flag commands as usual — all ExtraFlagsPlus flags in
 
 Blocking spear **Lunge** (including **Lunge** enchant) requires **PacketEvents** or **ProtocolLib**. Install **PacketEvents** for primary support; **ProtocolLib** is used as a fallback when PacketEvents is unavailable.
 
+#### Throwable blocking (`disable-throw`)
+
+Blocks **throwing** only: **`EGG`**, **`SNOWBALL`**, **`ENDER_PEARL`**, **`EXPERIENCE_BOTTLE`**. Tridents and wind charges belong on **`disable-completely`**, not this flag.
+
+Ensure **`all-flags-control.disable-throw`** is enabled in `plugins/WorldGuard/config-wgefp.yml` (default on).
+
+Customize **`disable-throw-blocked`** in `messages-wgefp.yml` (placeholder `{item}`).
+
+```bash
+/rg flag arena disable-throw EGG,SNOWBALL
+/rg flag arena disable-throw ENDER_PEARL
+/rg flag arena disable-throw EXPERIENCE_BOTTLE
+/rg flag arena disable-throw clear
+```
+
 #### Chambered ender pearl *(experimental)*
 **Experimental** — behavior may change in future releases.
 ```bash
@@ -118,7 +133,7 @@ Blocking spear **Lunge** (including **Lunge** enchant) requires **PacketEvents**
 - `allow-block-place` / `deny-block-place`
 - `allow-block-break` / `deny-block-break`
 - `deny-item-drops` / `deny-item-pickup`
-- `disable-completely` / `permit-workbenches`
+- `disable-completely` / `disable-throw` / `permit-workbenches`
 
 ### Entry Control
 - `entry-min-level` / `entry-max-level`
@@ -134,3 +149,4 @@ Blocking spear **Lunge** (including **Lunge** enchant) requires **PacketEvents**
 - Use `clear` to remove flag values: `/rg flag <region> <flag> clear`
 - Some flags require specific plugins (PlaceholderAPI for placeholder support)
 - Check individual flag documentation for advanced usage
+- **`disable-throw`** must be enabled in **`config-wgefp.yml`** (`all-flags-control.disable-throw`) alongside other toggled flags
