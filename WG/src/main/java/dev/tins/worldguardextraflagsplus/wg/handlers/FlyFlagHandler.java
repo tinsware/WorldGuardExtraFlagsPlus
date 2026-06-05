@@ -45,6 +45,12 @@ public class FlyFlagHandler extends FlagValueChangeHandler<State>
 
     private static final ConcurrentHashMap<UUID, Boolean> originalWorldGuardFlyCache = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<UUID, Boolean> originalEssentialsFlyCache = new ConcurrentHashMap<>();
+
+	public static void clearPlayerCaches(UUID playerUUID)
+	{
+		originalWorldGuardFlyCache.remove(playerUUID);
+		originalEssentialsFlyCache.remove(playerUUID);
+	}
     private static Object essentialsAPI;
     private static boolean essentialsChecked = false;
 

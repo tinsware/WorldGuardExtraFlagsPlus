@@ -6,7 +6,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
@@ -39,6 +41,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 {
+	private static final int CHUNK_TICKET_BATCH_SIZE = 8;
 	private static final Set<Flag<?>> FLAGS = WorldGuardExtraFlagsPlusPlugin.getPluginFlags();
 	@Getter private static WorldGuardExtraFlagsPlusPlugin plugin;
 
@@ -273,10 +276,6 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 					}
 				}
 
-				// Register chambered-enderpearl handler
-				if (Config.isFlagEnabled("chambered-enderpearl")) {
-					this.sessionManager.registerHandler(ChamberedEnderPearlFlagHandler.FACTORY(), null);
-				}
 			}
 		}
 		catch (Exception e)
@@ -285,6 +284,12 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 			this.getLogger().warning("[Collision Flag] Failed to check scoreboard availability: " + 
 				(e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
 			this.getLogger().warning("[Collision Flag] Collision feature will be disabled");
+		}
+
+		if (Config.isFlagEnabled("chambered-enderpearl"))
+		{
+			this.sessionManager.registerHandler(ChamberedEnderPearlFlagHandler.FACTORY(), null);
+			this.getServer().getPluginManager().registerEvents(new ChamberedEnderPearlListener(), this);
 		}
 
 		// Register PlayerListener (contains multiple event handlers)
@@ -409,6 +414,8 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 			return;
 		}
 
+		List<long[]> chunkCoords = new ArrayList<>();
+
 		for (ProtectedRegion region : regionManager.getRegions().values())
 		{
 			if (region.getFlag(Flags.CHUNK_UNLOAD) == StateFlag.State.DENY)
@@ -418,15 +425,57 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 				BlockVector3 min = region.getMinimumPoint();
 				BlockVector3 max = region.getMaximumPoint();
 
-				for(int x = min.getBlockX() >> 4; x <= max.getBlockX() >> 4; x++)
+				for (int x = min.getBlockX() >> 4; x <= max.getBlockX() >> 4; x++)
 				{
-					for(int z = min.getBlockZ() >> 4; z <= max.getBlockZ() >> 4; z++)
+					for (int z = min.getBlockZ() >> 4; z <= max.getBlockZ() >> 4; z++)
 					{
-						world.getChunkAt(x, z).addPluginChunkTicket(this);
+						chunkCoords.add(new long[] {x, z});
 					}
 				}
 			}
 		}
+
+		if (!chunkCoords.isEmpty())
+		{
+			this.scheduleChunkTicketBatch(world, chunkCoords, 0);
+		}
+	}
+
+	private void scheduleChunkTicketBatch(org.bukkit.World world, List<long[]> chunkCoords, int startIndex)
+	{
+		if (startIndex >= chunkCoords.size())
+		{
+			return;
+		}
+
+		int endIndex = Math.min(startIndex + CHUNK_TICKET_BATCH_SIZE, chunkCoords.size());
+		for (int i = startIndex; i < endIndex; i++)
+		{
+			long[] coords = chunkCoords.get(i);
+			this.applyChunkTicket(world, (int) coords[0], (int) coords[1]);
+		}
+
+		if (endIndex < chunkCoords.size())
+		{
+			WorldGuardUtils.getScheduler().runNextTick(task ->
+					this.scheduleChunkTicketBatch(world, chunkCoords, endIndex));
+		}
+	}
+
+	private void applyChunkTicket(org.bukkit.World world, int chunkX, int chunkZ)
+	{
+		org.bukkit.Location location = new org.bukkit.Location(world, chunkX << 4, world.getMinHeight(), chunkZ << 4);
+		WorldGuardUtils.getScheduler().runAtLocation(location, task -> {
+			if (world.isChunkLoaded(chunkX, chunkZ))
+			{
+				world.getChunkAt(chunkX, chunkZ).addPluginChunkTicket(this);
+				return;
+			}
+
+			world.getChunkAtAsync(chunkX, chunkZ).thenAccept(chunk ->
+					WorldGuardUtils.getScheduler().runAtLocation(location, followUp ->
+							chunk.addPluginChunkTicket(this)));
+		});
 	}
 	
 	/**
@@ -811,6 +860,8 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 	@Override
 	public void onDisable()
 	{
+		WorldGuardUtils.cancelAllTasks();
+
 		this.unregisterDisableCompletelyPacketEventsHookReflect();
 		this.unregisterDisableCompletelyProtocolLibHookReflect();
 

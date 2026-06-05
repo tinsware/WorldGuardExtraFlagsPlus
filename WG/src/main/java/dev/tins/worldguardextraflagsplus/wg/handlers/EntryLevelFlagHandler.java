@@ -48,6 +48,7 @@ public class EntryLevelFlagHandler extends Handler
 	// Cache: player UUID -> (placeholder -> (value, timestamp))
 	private final ConcurrentHashMap<String, PlaceholderCacheEntry> placeholderCache = new ConcurrentHashMap<>();
 	private static final long CACHE_DURATION_MS = TimeUnit.SECONDS.toMillis(30);
+	private static final int PLACEHOLDER_CACHE_MAX_SIZE = 256;
 
 	private static class PlaceholderCacheEntry
 	{
@@ -288,6 +289,10 @@ public class EntryLevelFlagHandler extends Handler
 		// Cache the result
 		if (parsedValue != null)
 		{
+			if (placeholderCache.size() >= PLACEHOLDER_CACHE_MAX_SIZE)
+			{
+				placeholderCache.entrySet().removeIf(entry -> entry.getValue().isExpired());
+			}
 			placeholderCache.put(cacheKey, new PlaceholderCacheEntry(parsedValue, System.currentTimeMillis()));
 		}
 

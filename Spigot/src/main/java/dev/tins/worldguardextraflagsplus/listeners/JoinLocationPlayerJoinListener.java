@@ -57,7 +57,7 @@ public final class JoinLocationPlayerJoinListener implements Listener
 			{
 				return;
 			}
-			player.teleport(bukkitTarget);
+			player.teleportAsync(bukkitTarget);
 		});
 	}
 

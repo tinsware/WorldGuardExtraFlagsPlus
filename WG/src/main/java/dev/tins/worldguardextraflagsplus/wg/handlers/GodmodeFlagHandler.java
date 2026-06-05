@@ -38,6 +38,12 @@ public class GodmodeFlagHandler extends FlagValueChangeHandler<State>
     
     private static final ConcurrentHashMap<UUID, Boolean> originalWorldGuardGodmodeCache = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<UUID, Boolean> originalEssentialsGodmodeCache = new ConcurrentHashMap<>();
+
+	public static void clearPlayerCaches(UUID playerUUID)
+	{
+		originalWorldGuardGodmodeCache.remove(playerUUID);
+		originalEssentialsGodmodeCache.remove(playerUUID);
+	}
     private static Object essentialsAPI;
     private static boolean essentialsChecked = false;
     

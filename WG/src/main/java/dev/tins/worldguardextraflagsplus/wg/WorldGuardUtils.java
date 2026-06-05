@@ -30,6 +30,14 @@ public class WorldGuardUtils
 	{
 		return schedulerWrapper;
 	}
+
+	public static void cancelAllTasks()
+	{
+		if (foliaLib != null)
+		{
+			foliaLib.getScheduler().cancelAllTasks();
+		}
+	}
 	
 	public static boolean isPluginEnabled()
 	{
@@ -126,6 +134,15 @@ public class WorldGuardUtils
 		public com.tcoded.folialib.wrapper.task.WrappedTask runAtEntityTimer(org.bukkit.entity.Entity entity, java.lang.Runnable runnable, long delay, long period, java.util.concurrent.TimeUnit timeUnit)
 		{
 			return scheduler.runAtEntityTimer(entity, runnable, delay, period, timeUnit);
+		}
+
+		/**
+		 * Runs a task on the region thread that owns the given location/chunk.
+		 * On Spigot/Paper: runs on the main thread.
+		 */
+		public void runAtLocation(org.bukkit.Location location, java.util.function.Consumer<com.tcoded.folialib.wrapper.task.WrappedTask> task)
+		{
+			scheduler.runAtLocation(location, task);
 		}
 	}
 	

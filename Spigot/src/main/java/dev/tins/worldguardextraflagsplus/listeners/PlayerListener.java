@@ -18,6 +18,7 @@ import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
@@ -32,11 +33,14 @@ import com.sk89q.worldguard.session.Session;
 
 import lombok.RequiredArgsConstructor;
 import dev.tins.worldguardextraflagsplus.Config;
+import dev.tins.worldguardextraflagsplus.Messages;
 import dev.tins.worldguardextraflagsplus.WorldGuardExtraFlagsPlusPlugin;
 import dev.tins.worldguardextraflagsplus.flags.Flags;
 import dev.tins.worldguardextraflagsplus.wg.WorldGuardUtils;
+import dev.tins.worldguardextraflagsplus.wg.handlers.CollisionFlagHandler;
 import dev.tins.worldguardextraflagsplus.wg.handlers.FlyFlagHandler;
 import dev.tins.worldguardextraflagsplus.wg.handlers.GiveEffectsFlagHandler;
+import dev.tins.worldguardextraflagsplus.wg.handlers.GodmodeFlagHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -343,16 +347,7 @@ public class PlayerListener implements Listener
 		Boolean collisionValue = regions.queryValue(localPlayer, Flags.DISABLE_COLLISION);
 		if (collisionValue != null && collisionValue)
 		{
-			// Manually apply collision using the handler's method
-			// Note: Handler uses entity scheduler internally for scoreboard operations
-			WorldGuardUtils.getScheduler().runNextTick((wrappedTask) -> {
-				dev.tins.worldguardextraflagsplus.wg.handlers.CollisionFlagHandler handler = 
-					this.sessionManager.get(localPlayer).getHandler(dev.tins.worldguardextraflagsplus.wg.handlers.CollisionFlagHandler.class);
-				if (handler != null)
-				{
-					handler.applyCollisionSettingPublic(player, collisionValue);
-				}
-			});
+			this.applyCollisionOnJoinOrWorldChange(player, localPlayer, collisionValue);
 		}
 	}
 
@@ -382,16 +377,33 @@ public class PlayerListener implements Listener
 		Boolean collisionValue = regions.queryValue(localPlayer, Flags.DISABLE_COLLISION);
 		if (collisionValue != null && collisionValue)
 		{
-			// Note: Handler uses entity scheduler internally for scoreboard operations
-			WorldGuardUtils.getScheduler().runNextTick((wrappedTask) -> {
-				dev.tins.worldguardextraflagsplus.wg.handlers.CollisionFlagHandler handler = 
-					this.sessionManager.get(localPlayer).getHandler(dev.tins.worldguardextraflagsplus.wg.handlers.CollisionFlagHandler.class);
-				if (handler != null)
-				{
-					handler.applyCollisionSettingPublic(player, collisionValue);
-				}
-			});
+			this.applyCollisionOnJoinOrWorldChange(player, localPlayer, collisionValue);
 		}
+	}
+
+	@EventHandler(priority = EventPriority.MONITOR)
+	public void onPlayerQuit(PlayerQuitEvent event)
+	{
+		java.util.UUID playerId = event.getPlayer().getUniqueId();
+		FlyFlagHandler.clearPlayerCaches(playerId);
+		GodmodeFlagHandler.clearPlayerCaches(playerId);
+		Messages.clearCooldown(event.getPlayer());
+	}
+
+	private void applyCollisionOnJoinOrWorldChange(Player player, LocalPlayer localPlayer, Boolean collisionValue)
+	{
+		WorldGuardUtils.getScheduler().runAtEntity(player, (wrappedTask) -> {
+			if (!player.isOnline())
+			{
+				return;
+			}
+
+			CollisionFlagHandler handler = this.sessionManager.get(localPlayer).getHandler(CollisionFlagHandler.class);
+			if (handler != null)
+			{
+				handler.applyCollisionSettingPublic(player, collisionValue);
+			}
+		});
 	}
 
 	@EventHandler(priority = EventPriority.LOW, ignoreCancelled = false)

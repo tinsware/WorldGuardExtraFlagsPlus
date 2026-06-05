@@ -1,5 +1,6 @@
 package dev.tins.worldguardextraflagsplus.wg.handlers;
 
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.bukkit.BukkitPlayer;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.World;
@@ -12,7 +13,6 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.session.MoveType;
 
 import dev.tins.worldguardextraflagsplus.flags.Flags;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
@@ -70,7 +70,7 @@ public class PlayerCountLimitFlagHandler extends Handler
 					int limit = Integer.parseInt(limitStr.trim());
 					if (limit > 0)
 					{
-						int currentPlayers = countPlayersInRegion(region);
+						int currentPlayers = countPlayersInRegion(region, (World) to.getExtent());
 						if (currentPlayers >= limit)
 						{
 							// Region is full, deny entry
@@ -96,11 +96,12 @@ public class PlayerCountLimitFlagHandler extends Handler
 	 * @param region The region to count players in
 	 * @return The number of players in the region
 	 */
-	private int countPlayersInRegion(ProtectedRegion region)
+	private int countPlayersInRegion(ProtectedRegion region, World world)
 	{
 		int count = 0;
+		org.bukkit.World bukkitWorld = BukkitAdapter.adapt(world);
 
-		for (Player onlinePlayer : Bukkit.getOnlinePlayers())
+		for (Player onlinePlayer : bukkitWorld.getPlayers())
 		{
 			// Check if player is in the region
 			com.sk89q.worldedit.math.BlockVector3 blockVector = com.sk89q.worldedit.math.BlockVector3.at(
