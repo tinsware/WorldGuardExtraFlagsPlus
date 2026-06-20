@@ -52,8 +52,8 @@ public class Config
 			
 			// Load or update config using ConfigLib
 			config = YamlConfigurations.update(configFile, PluginConfig.class, PROPERTIES);
-			
-			plugin.getLogger().info("Loaded config from: " + configFile.toAbsolutePath());
+
+			logStartupInfo("Loaded config from: " + configFile.toAbsolutePath());
 		}
 		catch (de.exlll.configlib.ConfigurationException e)
 		{
@@ -139,6 +139,26 @@ public class Config
 		return config != null ? config.getGodmode().isAutoGiveGodmodeRegionLeft() : false;
 	}
 
+	public static boolean isVerboseStartupLogs()
+	{
+		return config != null && config.getLogging() != null && config.getLogging().isVerboseStartupLogs();
+	}
+
+	public static void logStartupInfo(String message)
+	{
+		if (plugin != null && isVerboseStartupLogs())
+		{
+			plugin.getLogger().info(message);
+		}
+	}
+
+	public static void logStartupFine(String message)
+	{
+		if (plugin != null)
+		{
+			plugin.getLogger().fine(message);
+		}
+	}
 
 
 	// Flag control methods

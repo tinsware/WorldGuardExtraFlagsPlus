@@ -165,11 +165,9 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 	@Override
 	public void onEnable()
 	{
-		// Initialize messages system first (loads messages-wgefp.yml from WorldGuard folder)
-		Messages.initialize(this);
-
-		// Initialize config system (loads config-wgefp.yml from WorldGuard folder)
+		// Config before messages so verbose-startup-logs applies to message load lines
 		Config.initialize(this);
+		Messages.initialize(this);
 
 		// Check for conflicting plugins
 		this.checkForConflictingPlugins();
@@ -217,73 +215,10 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 			if (Config.isFlagEnabled("entry-min-level") || Config.isFlagEnabled("entry-max-level")) this.sessionManager.registerHandler(EntryLevelFlagHandler.FACTORY(plugin), null);
 			if (Config.isFlagEnabled("player-count-limit")) this.sessionManager.registerHandler(PlayerCountLimitFlagHandler.FACTORY(plugin), null);
 		
-		// Initialize collision handler (uses native Minecraft teams, no external libraries needed)
-		// Check scoreboard availability now that server is fully loaded
-		try
+		// Initialize collision handler when disable-collision flag is enabled
+		if (Config.isFlagEnabled("disable-collision"))
 		{
-			// Check if TAB is installed (TAB integration is supported)
-			boolean tabInstalled = this.getServer().getPluginManager().getPlugin("TAB") != null;
-			
-      this.getLogger().info(" ");
-			// Show info about team conflicts
-			this.getLogger().info("[Collision Flag] The disable-collision flag uses Minecraft teams.");
-			this.getLogger().info("[Collision Flag] Using this flag with plugins that manage teams may cause conflicts!");
-			this.getLogger().info("[Collision Flag] Do NOT use the disable-collision flag if you have these plugins installed.");
-      // Show supported plugins with team integration
-			this.getLogger().info("[Collision Flag] Supported plugins with (1): TAB");
-      this.getLogger().info(" ");
-
-			
-			if (this.getServer().getScoreboardManager() == null || 
-			    this.getServer().getScoreboardManager().getMainScoreboard() == null)
-			{
-				this.collisionFlagEnabled = false;
-				this.getLogger().warning("[Collision Flag] Scoreboard not available - collision feature will be disabled");
-			}
-			else
-			{
-				// Scoreboard is available, initialize the collision handler
-				try
-				{
-					this.collisionPacketHandler = new dev.tins.worldguardextraflagsplus.collision.TeamCollisionHandler(this);
-					
-					// Initialize the collision handler
-					if (!this.collisionPacketHandler.initialize())
-					{
-						this.getLogger().warning("[Collision Flag] Failed to initialize collision handler");
-						this.getLogger().warning("[Collision Flag] Collision feature will be disabled");
-						this.collisionFlagEnabled = false;
-						this.collisionPacketHandler = null;
-					}
-					else
-					{
-						this.getLogger().info("[Collision Flag] Initialized " + this.collisionPacketHandler.getLibraryName() + " collision handler");
-						
-						// Register collision handler if initialized successfully
-						this.sessionManager.registerHandler(CollisionFlagHandler.FACTORY(), null);
-					}
-				}
-				catch (Throwable e)
-				{
-					this.getLogger().warning("[Collision Flag] Failed to register collision handler: " +
-						(e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
-					this.getLogger().warning("[Collision Flag] Collision feature will be disabled");
-					this.collisionFlagEnabled = false;
-					if (this.collisionPacketHandler != null)
-					{
-						this.collisionPacketHandler.cleanup();
-						this.collisionPacketHandler = null;
-					}
-				}
-
-			}
-		}
-		catch (Exception e)
-		{
-			this.collisionFlagEnabled = false;
-			this.getLogger().warning("[Collision Flag] Failed to check scoreboard availability: " + 
-				(e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
-			this.getLogger().warning("[Collision Flag] Collision feature will be disabled");
+			this.initializeCollisionHandler();
 		}
 
 		if (Config.isFlagEnabled("chambered-enderpearl"))
@@ -308,11 +243,8 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 				this.sendJoinLocationDeprecationWarning();
 			}
 			this.getServer().getPluginManager().registerEvents(new JoinLocationPlayerJoinListener(this.worldGuardPlugin, this.regionContainer), this);
-		} else {
-      this.getLogger().info(" ");
-			this.getLogger().info("[Join Location Flag] Disabled in config-wgefp.yml it will not load the flag");
-      this.getLogger().info(" ");
 		}
+
 		// Register listeners based on configuration
 		if (Config.isFlagEnabled("allow-block-place") || Config.isFlagEnabled("deny-block-place") ||
 		    Config.isFlagEnabled("allow-block-break") || Config.isFlagEnabled("deny-block-break") ||
@@ -399,11 +331,52 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 
 	private void sendJoinLocationDeprecationWarning()
 	{
-		this.getLogger().info(" >> >> ");
-		this.getLogger().info(" >> >> If you are not using \"join-location\" flag, you can disable it in the \"config-wgefp.yml\" ");
-		this.getLogger().info(" >> >> This will avoid the deprecation warning on server load");
-		this.getLogger().info(" >> >> Otherwise, the plugin will work correctly, deprecation warning will not broke working of it.");
-		this.getLogger().info(" >> >> ");
+		this.getLogger().warning("[join-location] Using deprecated PlayerSpawnLocationEvent on this server; "
+				+ "set all-flags-control.join-location: false in config-wgefp.yml if unused to silence Paper's warning.");
+	}
+
+	private void initializeCollisionHandler()
+	{
+		try
+		{
+			if (Config.isVerboseStartupLogs())
+			{
+				this.getLogger().info("[Collision Flag] disable-collision uses Minecraft teams and may conflict with other team plugins (TAB supported).");
+			}
+
+			if (this.getServer().getScoreboardManager() == null
+					|| this.getServer().getScoreboardManager().getMainScoreboard() == null)
+			{
+				this.collisionFlagEnabled = false;
+				this.getLogger().warning("[Collision Flag] Scoreboard not available - collision feature will be disabled");
+				return;
+			}
+
+			this.collisionPacketHandler = new dev.tins.worldguardextraflagsplus.collision.TeamCollisionHandler(this);
+			if (!this.collisionPacketHandler.initialize())
+			{
+				this.getLogger().warning("[Collision Flag] Failed to initialize collision handler");
+				this.getLogger().warning("[Collision Flag] Collision feature will be disabled");
+				this.collisionFlagEnabled = false;
+				this.collisionPacketHandler = null;
+				return;
+			}
+
+			this.sessionManager.registerHandler(CollisionFlagHandler.FACTORY(), null);
+			Config.logStartupInfo("[Collision Flag] Initialized " + this.collisionPacketHandler.getLibraryName() + " collision handler");
+		}
+		catch (Throwable e)
+		{
+			this.collisionFlagEnabled = false;
+			this.getLogger().warning("[Collision Flag] Failed to register collision handler: "
+					+ (e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
+			this.getLogger().warning("[Collision Flag] Collision feature will be disabled");
+			if (this.collisionPacketHandler != null)
+			{
+				this.collisionPacketHandler.cleanup();
+				this.collisionPacketHandler = null;
+			}
+		}
 	}
 
 	public void doUnloadChunkFlagCheck(org.bukkit.World world)
@@ -415,12 +388,14 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 		}
 
 		List<long[]> chunkCoords = new ArrayList<>();
+		int regionCount = 0;
 
 		for (ProtectedRegion region : regionManager.getRegions().values())
 		{
 			if (region.getFlag(Flags.CHUNK_UNLOAD) == StateFlag.State.DENY)
 			{
-				this.getLogger().info("Loading chunks for region " + region.getId() + " located in " + world.getName() + " due to chunk-unload flag being deny");
+				regionCount++;
+				Config.logStartupInfo("Loading chunks for region " + region.getId() + " in " + world.getName() + " (chunk-unload: deny)");
 
 				BlockVector3 min = region.getMinimumPoint();
 				BlockVector3 max = region.getMaximumPoint();
@@ -437,6 +412,11 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 
 		if (!chunkCoords.isEmpty())
 		{
+			if (!Config.isVerboseStartupLogs())
+			{
+				this.getLogger().info("[chunk-unload] Applying plugin chunk tickets in " + world.getName()
+						+ ": " + regionCount + " region(s), " + chunkCoords.size() + " chunk(s)");
+			}
 			this.scheduleChunkTicketBatch(world, chunkCoords, 0);
 		}
 	}
@@ -535,7 +515,8 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 						int occurrences = (originalContent.length() - originalContent.replace("permit-completely:", "").length()) / "permit-completely:".length();
 						migratedCount += occurrences;
 						
-						this.getLogger().info("Migrated flag 'permit-completely' to 'disable-completely' in region file for world '" + worldFolder.getName() + "' (" + occurrences + " occurrence(s))");
+						Config.logStartupInfo("Migrated flag 'permit-completely' to 'disable-completely' in region file for world '"
+								+ worldFolder.getName() + "' (" + occurrences + " occurrence(s))");
 						
 						// Add to set for in-memory update later
 						migratedWorlds.add(worldFolder.getName());
@@ -549,7 +530,8 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 			
 			if (migratedCount > 0)
 			{
-				this.getLogger().info("Region file migration completed: " + migratedCount + " flag occurrence(s) migrated from 'permit-completely' to 'disable-completely'");
+					this.getLogger().info("Region file migration completed: " + migratedCount
+							+ " flag occurrence(s) migrated from 'permit-completely' to 'disable-completely'");
 			}
 		}
 		catch (Exception e)
@@ -610,7 +592,7 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 				try
 				{
 					team.unregister();
-					this.getLogger().info("[Collision Flag] Cleaned up old collision team from previous implementation");
+					Config.logStartupInfo("[Collision Flag] Cleaned up old collision team from previous implementation");
 				}
 				catch (Exception e)
 				{
@@ -635,7 +617,7 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 		try
 		{
 			Metrics metrics = new Metrics(this, bStatsPluginId);
-			this.getLogger().info("bStats metrics enabled (ID: " + bStatsPluginId + ")");
+			Config.logStartupInfo("bStats metrics enabled (ID: " + bStatsPluginId + ")");
 			
 			// Note: Custom charts can be added here once chart types are confirmed
 			// Track flag usage statistics
@@ -692,7 +674,7 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 			try
 			{
 				this.registerDisableCompletelyPacketEventsHookReflect(query);
-				this.getLogger().info("[disable-completely] PacketEvents packet hook registered (STAB / use / interact).");
+				Config.logStartupInfo("[disable-completely] PacketEvents packet hook registered (STAB / use / interact).");
 			}
 			catch (Throwable t)
 			{
@@ -712,7 +694,7 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 			try
 			{
 				this.registerDisableCompletelyProtocolLibHookReflect(query);
-				this.getLogger().info("[disable-completely] ProtocolLib packet hook registered (fallback; install PacketEvents for primary support).");
+				Config.logStartupInfo("[disable-completely] ProtocolLib packet hook registered (fallback; install PacketEvents for primary support).");
 			}
 			catch (Throwable t)
 			{
@@ -723,7 +705,7 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 		}
 		else if (this.disableCompletelyPacketEventsListener == null)
 		{
-			this.getLogger().info("[disable-completely] No PacketEvents or ProtocolLib: spear Lunge (STAB) may bypass Bukkit events. Install PacketEvents on the server.");
+			Config.logStartupInfo("[disable-completely] No PacketEvents or ProtocolLib: spear Lunge (STAB) may bypass Bukkit events. Install PacketEvents on the server.");
 		}
 	}
 

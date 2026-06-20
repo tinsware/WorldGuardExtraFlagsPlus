@@ -146,8 +146,8 @@ public class Messages
 			// Clear cooldowns when reloading messages
 			clearAllCooldowns();
 			
-			plugin.getLogger().info("Loaded messages from: " + messagesFile.toAbsolutePath());
-			plugin.getLogger().info("Message cooldown: " + (messageCooldownSeconds > 0 ? messageCooldownSeconds + " seconds" : "disabled"));
+			Config.logStartupInfo("Loaded messages from: " + messagesFile.toAbsolutePath());
+			Config.logStartupInfo("Message cooldown: " + (messageCooldownSeconds > 0 ? messageCooldownSeconds + " seconds" : "disabled"));
 		}
 		catch (de.exlll.configlib.ConfigurationException e)
 		{

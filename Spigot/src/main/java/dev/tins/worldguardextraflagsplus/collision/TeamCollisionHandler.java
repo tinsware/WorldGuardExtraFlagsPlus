@@ -1,5 +1,6 @@
 package dev.tins.worldguardextraflagsplus.collision;
 
+import dev.tins.worldguardextraflagsplus.Config;
 import dev.tins.worldguardextraflagsplus.WorldGuardExtraFlagsPlusPlugin;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
@@ -40,7 +41,7 @@ public class TeamCollisionHandler implements CollisionPacketHandler
 			// Try to initialize TAB integration first
 			if (TabIntegration.initialize())
 			{
-				plugin.getLogger().info("[Collision] TAB integration initialized - using TAB API for collision management");
+				Config.logStartupInfo("[Collision] TAB integration initialized - using TAB API for collision management");
 				return true;
 			}
 			

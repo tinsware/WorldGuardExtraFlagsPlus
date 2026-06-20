@@ -39,6 +39,24 @@ public final class PluginConfig {
 	})
 	private GodmodeSettings godmode = new GodmodeSettings();
 
+	@Comment({
+		"Logging",
+		"-------"
+	})
+	private LoggingSettings logging = new LoggingSettings();
+
+	@Getter
+	@NoArgsConstructor
+	@Configuration
+	public static class LoggingSettings
+	{
+		@Comment({
+			"Print detailed startup lines (config paths, per-region chunk-unload tickets, collision banner).",
+			"Default: false — keeps console quiet on large servers (see GitHub issue #14)."
+		})
+		private boolean verboseStartupLogs = false;
+	}
+
 	
 	@Getter
 	@NoArgsConstructor
