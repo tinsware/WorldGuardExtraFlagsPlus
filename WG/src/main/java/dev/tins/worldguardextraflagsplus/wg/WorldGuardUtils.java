@@ -24,6 +24,28 @@ public class WorldGuardUtils
 		WorldGuardUtils.foliaLib = new FoliaLib(plugin);
 		WorldGuardUtils.schedulerWrapper = new SchedulerWrapper(foliaLib);
 		WorldGuardUtils.plugin = plugin;
+
+		verifySchedulerLoaded(plugin);
+	}
+
+	private static void verifySchedulerLoaded(Plugin plugin)
+	{
+		if (schedulerWrapper == null)
+		{
+			plugin.getLogger().severe("[Scheduler] FoliaLib failed to initialize — flag schedulers will not run.");
+			return;
+		}
+
+		try
+		{
+			schedulerWrapper.runNextTick(task -> { });
+		}
+		catch (Throwable throwable)
+		{
+			plugin.getLogger().severe("[Scheduler] FoliaLib task scheduling failed — command/console-on-entry and other "
+					+ "scheduled flags will not work. Rebuild the plugin with mvn package (shaded jar). Cause: "
+					+ (throwable.getMessage() != null ? throwable.getMessage() : throwable.getClass().getSimpleName()));
+		}
 	}
 	
 	public static SchedulerWrapper getScheduler()

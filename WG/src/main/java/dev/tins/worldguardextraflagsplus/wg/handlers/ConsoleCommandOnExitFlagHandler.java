@@ -1,17 +1,12 @@
 package dev.tins.worldguardextraflagsplus.wg.handlers;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
-import com.google.common.collect.Lists;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldguard.LocalPlayer;
 import com.sk89q.worldguard.session.handler.Handler;
-import org.bukkit.Bukkit;
-
-import dev.tins.worldguardextraflagsplus.wg.WorldGuardUtils;
 
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
@@ -26,75 +21,46 @@ public class ConsoleCommandOnExitFlagHandler extends Handler
 	{
 		return new Factory();
 	}
-	
-    public static class Factory extends Handler.Factory<ConsoleCommandOnExitFlagHandler>
-    {
+
+	public static class Factory extends Handler.Factory<ConsoleCommandOnExitFlagHandler>
+	{
 		@Override
-        public ConsoleCommandOnExitFlagHandler create(Session session)
-        {
-            return new ConsoleCommandOnExitFlagHandler(session);
-        }
-    }
-    
-	private Collection<Set<String>> lastCommands;
-	    
+		public ConsoleCommandOnExitFlagHandler create(Session session)
+		{
+			return new ConsoleCommandOnExitFlagHandler(session);
+		}
+	}
+
+	private List<Set<String>> lastCommands;
+
 	protected ConsoleCommandOnExitFlagHandler(Session session)
 	{
 		super(session);
-		
-		this.lastCommands = new ArrayList<>();
+
+		this.lastCommands = List.of();
 	}
 
-    @Override
-	public void initialize(LocalPlayer player, Location current, ApplicableRegionSet set)
-    {
-    	this.lastCommands = set.queryAllValues(player, Flags.CONSOLE_COMMAND_ON_EXIT);
-    }
-    	
 	@Override
-	public boolean onCrossBoundary(LocalPlayer player, Location from, Location to, ApplicableRegionSet toSet, Set<ProtectedRegion> entered, Set<ProtectedRegion> exited, MoveType moveType)
+	public void initialize(LocalPlayer player, Location current, ApplicableRegionSet set)
 	{
-		Collection<Set<String>> commands = Lists.newArrayList(toSet.queryAllValues(player, Flags.CONSOLE_COMMAND_ON_EXIT));
-		
-		if (!commands.isEmpty())
-		{
-			for (ProtectedRegion region : toSet)
-			{
-                Set<String> commands_ = region.getFlag(Flags.CONSOLE_COMMAND_ON_EXIT);
-                if (commands_ != null)
-                {
-                	commands.add(commands_);
-                }
-            }
-		}
+		this.lastCommands = CommandFlagHandlerSupport.collectCommandSets(set, player, Flags.CONSOLE_COMMAND_ON_EXIT);
+	}
 
-		Collection<Set<String>> lastCommands = this.lastCommands;
+	@Override
+	public boolean onCrossBoundary(LocalPlayer player, Location from, Location to, ApplicableRegionSet toSet,
+			Set<ProtectedRegion> entered, Set<ProtectedRegion> exited, MoveType moveType)
+	{
+		List<Set<String>> currentCommands = CommandFlagHandlerSupport.collectCommandSets(toSet, player, Flags.CONSOLE_COMMAND_ON_EXIT);
+		List<Set<String>> previousCommands = this.lastCommands;
+		this.lastCommands = currentCommands;
 
-		this.lastCommands = commands;
-
-		if (!this.getSession().getManager().hasBypass(player, (World) to.getExtent()))
-		{
-			for (Set<String> commands_ : lastCommands)
-			{
-				if (!commands.contains(commands_))
-				{
-					for (String command : commands_) {
-						String processedCommand = CommandPlaceholderUtil.prepareForDispatch(player, command);
-						if (processedCommand.isEmpty())
-						{
-							continue;
-						}
-						WorldGuardUtils.getScheduler().runNextTick((wrappedTask) -> Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), processedCommand));
-					}
-
-					break;
-				}
-			}
-		}
-		
+		CommandFlagHandlerSupport.dispatchExitCommands(
+				this.getSession().getManager(),
+				player,
+				(World) to.getExtent(),
+				previousCommands,
+				currentCommands,
+				true);
 		return true;
 	}
 }
-
-
-
