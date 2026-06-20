@@ -1,6 +1,6 @@
 ﻿# WorldGuard ExtraFlags Plus
 
-**Release 4.3.13** — Bukkit plugin extension for [WorldGuard](https://github.com/EngineHub/WorldGuard).
+**Release 4.4.0** — Bukkit plugin extension for [WorldGuard](https://github.com/EngineHub/WorldGuard).
 
 ## ⚠️ Warning DO NOT USE BOTH PLUGINS TOGETHER!
 
@@ -18,7 +18,13 @@
 - New **Configurable Messages** | Customize all plugin messages via `messages-wgefp.yml` in WorldGuard folder (including **`disable-throw-blocked`**, **`disable-completely-blocked`**, etc.) ✅
 - New **Message Cooldown System** | Prevents message spam with configurable cooldown (default: 3 seconds) ✅
 - **Update Checker** | Automatically checks for updates from Spigot, GitHub, and Modrinth ✅
-- **Paper 1.21.x** | `plugin.yml` declares **`api-version: 1.21`** so Paper **1.21.x** servers and forks load the plugin ✅
+- **Paper 1.21.x / 26.1–26.3** | `plugin.yml` declares **`api-version: 1.21`**; Java **21** bytecode ✅
+- **Command-on-entry / console-on-entry** | Fixed FoliaLib shading + dispatch logic ✅
+- **Quiet startup** | `verbose-startup-logs: false` by default ([#14](https://github.com/tinsware/WorldGuardExtraFlagsPlus/issues/14)) ✅
+- **Give-effects** | Accepts `night_vision`, `minecraft:night_vision` ([#15](https://github.com/tinsware/WorldGuardExtraFlagsPlus/issues/15)) ✅
+- **Keep-inventory + combat log** | DeluxeCombat restore when combat-logging in keep-inventory regions ✅
+- **Member-only allow-block-place/break** | Optional `require-membership` in config ✅
+- **hide-players flag** (experimental) | Hub/lobby visibility optimization — opt-in in config ✅
 - New Flag **"villager-trade"** | Control villager trading in regions ✅
 - New Flag **"disable-collision"** | Disable player collision in regions ✅
   - *Uses Minecraft's native scoreboard teams to control collision. TAB plugin is supported with API integration. May conflict with other plugins that use teams. See [documentation](public-documents/disable-collision%20flag%20documentation.md) for details.*
@@ -49,5 +55,5 @@ WorldGuard ExtraFlags Plus is extension to WorldGuard that adds 38+ new flags!
 
 ## Support & Community
 
-- 📜 **Changelog:** [CHANGELOG.md](CHANGELOG.md) (release **4.3.13**)
+- 📜 **Changelog:** [CHANGELOG.md](CHANGELOG.md) (release **4.4.0**)
 - 💬 **Discord:** [Join our Discord server](https://discord.gg/TCJAwsdqum)
