@@ -40,6 +40,12 @@ public final class PluginConfig {
 	private GodmodeSettings godmode = new GodmodeSettings();
 
 	@Comment({
+		"Keep-inventory settings",
+		"Controls behavior of the keep-inventory flag"
+	})
+	private KeepInventorySettings keepInventorySettings = new KeepInventorySettings();
+
+	@Comment({
 		"Logging",
 		"-------"
 	})
@@ -86,6 +92,18 @@ public final class PluginConfig {
 		private boolean autoGiveGodmodeRegionLeft = false;
 	}
 
+	@Getter
+	@NoArgsConstructor
+	@Configuration
+	public static class KeepInventorySettings {
+		@Comment({
+			"When true and DeluxeCombat is installed, combat-logging inside a keep-inventory region",
+			"saves the player's inventory and restores it on next login.",
+			"Default: true"
+		})
+		private boolean combatLogRestore = true;
+	}
+
 
 	@Comment({
     " ",
@@ -128,6 +146,9 @@ public final class PluginConfig {
 		private boolean walkSpeed = true;
 		private boolean flySpeed = true;
 		private boolean fly = true;
+		@Comment({
+			"When false, glide is not registered — remove glide from existing regions or WorldGuard will warn (issue #13)."
+		})
 		private boolean glide = true;
 		private boolean frostwalker = true;
 

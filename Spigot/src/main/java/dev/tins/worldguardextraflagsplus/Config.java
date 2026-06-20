@@ -242,4 +242,11 @@ public class Config
 	{
 		return configFile != null ? configFile.toFile() : null;
 	}
+
+	public static boolean isCombatLogKeepInventoryEnabled()
+	{
+		return config != null
+				&& config.getKeepInventorySettings() != null
+				&& config.getKeepInventorySettings().isCombatLogRestore();
+	}
 }

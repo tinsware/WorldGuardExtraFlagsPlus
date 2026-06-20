@@ -36,6 +36,8 @@ import dev.tins.worldguardextraflagsplus.Config;
 import dev.tins.worldguardextraflagsplus.Messages;
 import dev.tins.worldguardextraflagsplus.WorldGuardExtraFlagsPlusPlugin;
 import dev.tins.worldguardextraflagsplus.flags.Flags;
+import dev.tins.worldguardextraflagsplus.integration.DeluxeCombatIntegration;
+import dev.tins.worldguardextraflagsplus.integration.KeepInventoryCombatLogSupport;
 import dev.tins.worldguardextraflagsplus.wg.WorldGuardUtils;
 import dev.tins.worldguardextraflagsplus.wg.handlers.CollisionFlagHandler;
 import dev.tins.worldguardextraflagsplus.wg.handlers.FlyFlagHandler;
@@ -130,6 +132,8 @@ public class PlayerListener implements Listener
 				event.setDroppedExp(0);
 			}
 		}
+
+		KeepInventoryCombatLogSupport.clear(player);
 	}
 
 	@EventHandler(ignoreCancelled = true)
@@ -349,6 +353,12 @@ public class PlayerListener implements Listener
 		{
 			this.applyCollisionOnJoinOrWorldChange(player, localPlayer, collisionValue);
 		}
+
+		if (Config.isFlagEnabled("keep-inventory") && Config.isCombatLogKeepInventoryEnabled())
+		{
+			WorldGuardUtils.getScheduler().runAtEntity(player, (wrappedTask) ->
+					KeepInventoryCombatLogSupport.restoreIfPending(player));
+		}
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR)
@@ -379,6 +389,37 @@ public class PlayerListener implements Listener
 		{
 			this.applyCollisionOnJoinOrWorldChange(player, localPlayer, collisionValue);
 		}
+	}
+
+	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	public void onPlayerQuitCombatLogKeepInventory(PlayerQuitEvent event)
+	{
+		if (!Config.isFlagEnabled("keep-inventory") || !Config.isCombatLogKeepInventoryEnabled())
+		{
+			return;
+		}
+
+		Player player = event.getPlayer();
+		LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
+
+		if (this.sessionManager.hasBypass(localPlayer, localPlayer.getWorld()))
+		{
+			return;
+		}
+
+		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(localPlayer.getLocation());
+		Boolean keepInventory = regions.queryValue(localPlayer, Flags.KEEP_INVENTORY);
+		if (!Boolean.TRUE.equals(keepInventory))
+		{
+			return;
+		}
+
+		if (!DeluxeCombatIntegration.isInCombat(player))
+		{
+			return;
+		}
+
+		KeepInventoryCombatLogSupport.rememberCombatLogQuit(player);
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR)

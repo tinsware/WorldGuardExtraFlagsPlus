@@ -1,5 +1,8 @@
 package dev.tins.worldguardextraflagsplus.flags.helpers;
 
+import java.util.Locale;
+
+import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -30,42 +33,71 @@ public class PotionEffectFlag extends Flag<PotionEffect>
 	@Override
 	public PotionEffect parseInput(FlagContext context) throws InvalidFlagFormat
 	{
-		String[] split = context.getUserInput().trim().split(" ");
+		String[] split = context.getUserInput().trim().split("\\s+");
 		if (split.length < 1 || split.length > 3)
 		{
 			throw new InvalidFlagFormat("Please use the following format: <effect name> [effect amplifier] [show particles]");
 		}
 
-		PotionEffectType potionEffect = Registry.EFFECT.match(split[0]);
+		PotionEffectType potionEffect = resolveEffectType(split[0]);
 		if (potionEffect == null)
 		{
-			potionEffect = PotionEffectType.getByName(split[0]);
-		}
-
-		if (potionEffect == null)
-		{
-			throw new InvalidFlagFormat("Unable to find the potion effect type! Input valid namespaced ids.");
+			throw new InvalidFlagFormat("Unable to find potion effect '" + split[0]
+					+ "'. Use names like night_vision or minecraft:night_vision.");
 		}
 		
-		return this.buildPotionEffect(split);
+		return this.buildPotionEffect(split, potionEffect);
 	}
 
 	@Override
 	public PotionEffect unmarshal(Object o)
 	{
 		String[] split = o.toString().split(" ");
-		
-		return this.buildPotionEffect(split);
-	}
-	
-	private PotionEffect buildPotionEffect(String[] split)
-	{
-		PotionEffectType potionEffect = Registry.EFFECT.match(split[0]);
+		PotionEffectType potionEffect = resolveEffectType(split[0]);
 		if (potionEffect == null)
 		{
-			potionEffect = PotionEffectType.getByName(split[0]);
+			return null;
 		}
-		
+
+		return this.buildPotionEffect(split, potionEffect);
+	}
+
+	static PotionEffectType resolveEffectType(String rawInput)
+	{
+		if (rawInput == null || rawInput.isBlank())
+		{
+			return null;
+		}
+
+		String normalized = rawInput.trim().toLowerCase(Locale.ROOT).replace(' ', '_');
+
+		PotionEffectType potionEffect = Registry.EFFECT.match(normalized);
+		if (potionEffect != null)
+		{
+			return potionEffect;
+		}
+
+		if (!normalized.contains(":"))
+		{
+			potionEffect = Registry.EFFECT.get(NamespacedKey.minecraft(normalized));
+			if (potionEffect != null)
+			{
+				return potionEffect;
+			}
+		}
+
+		potionEffect = PotionEffectType.getByName(normalized.toUpperCase(Locale.ROOT));
+		if (potionEffect != null)
+		{
+			return potionEffect;
+		}
+
+		potionEffect = PotionEffectType.getByName(normalized.replace("_", "").toUpperCase(Locale.ROOT));
+		return potionEffect;
+	}
+	
+	private PotionEffect buildPotionEffect(String[] split, PotionEffectType potionEffect)
+	{
 		int amplifier = 0;
 		if (split.length >= 2)
 		{
@@ -81,6 +113,3 @@ public class PotionEffectFlag extends Flag<PotionEffect>
 		return new PotionEffect(potionEffect, PotionEffectFlag.POTION_EFFECT_DURATION, amplifier, true, showParticles);
 	}
 }
-
-
-

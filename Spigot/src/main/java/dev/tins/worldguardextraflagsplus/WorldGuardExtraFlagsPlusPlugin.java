@@ -82,6 +82,9 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 		this.worldGuardPlugin = (WorldGuardPlugin) this.getServer().getPluginManager().getPlugin("WorldGuard");
 
 		this.worldGuard = WorldGuard.getInstance();
+
+		// Load config before flag registration so disabled flags are not registered (fixes #13 glide / unknown-flag warnings)
+		Config.initialize(this);
 		
 		// Collision flag uses native Minecraft teams - no external libraries needed
 		// Enable by default; scoreboard availability will be checked in onEnable() when server is fully loaded
