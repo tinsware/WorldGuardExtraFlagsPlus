@@ -233,6 +233,7 @@ public class Config
 			// Special Features
 			case "disable-collision": return flags.isDisableCollision();
 			case "chambered-enderpearl": return flags.isChamberedEnderPearl();
+			case "hide-players": return flags.isHidePlayers();
 
 			default: return true; // Default to enabled for unknown flags
 		}
@@ -248,5 +249,19 @@ public class Config
 		return config != null
 				&& config.getKeepInventorySettings() != null
 				&& config.getKeepInventorySettings().isCombatLogRestore();
+	}
+
+	public static boolean isAllowBlockPlaceRequireMembership()
+	{
+		return config != null
+				&& config.getAllowBlockPlaceSettings() != null
+				&& config.getAllowBlockPlaceSettings().isRequireMembership();
+	}
+
+	public static boolean isAllowBlockBreakRequireMembership()
+	{
+		return config != null
+				&& config.getAllowBlockBreakSettings() != null
+				&& config.getAllowBlockBreakSettings().isRequireMembership();
 	}
 }

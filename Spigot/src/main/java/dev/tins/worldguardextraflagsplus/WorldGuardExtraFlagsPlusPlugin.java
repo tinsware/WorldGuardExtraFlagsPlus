@@ -141,6 +141,7 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 			// Register collision flag (scoreboard availability will be checked in onEnable())
 			if (Config.isFlagEnabled("disable-collision")) flagRegistry.register(Flags.DISABLE_COLLISION);
 			if (Config.isFlagEnabled("chambered-enderpearl")) flagRegistry.register(Flags.CHAMBERED_ENDERPEARL);
+			if (Config.isFlagEnabled("hide-players")) flagRegistry.register(Flags.HIDE_PLAYERS);
 		}
 		catch (Exception e)
 		{
@@ -230,13 +231,18 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 			this.getServer().getPluginManager().registerEvents(new ChamberedEnderPearlListener(), this);
 		}
 
+		if (Config.isFlagEnabled("hide-players"))
+		{
+			this.sessionManager.registerHandler(HidePlayersFlagHandler.FACTORY, null);
+		}
+
 		// Register PlayerListener (contains multiple event handlers)
 		this.getServer().getPluginManager().registerEvents(new PlayerListener(this, this.worldGuardPlugin, this.regionContainer, this.sessionManager), this);
 
 		// Conditionally register join-location listener only if flag is enabled
 		if (Config.isFlagEnabled("join-location"))
 		{
-			if (hasAsyncPlayerSpawnLocationEvent())
+			if (shouldUseAsyncJoinLocationListener())
 			{
 				this.getServer().getPluginManager().registerEvents(new AsyncJoinLocationListener(this.regionContainer), this);
 			}
@@ -316,20 +322,46 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 	}
 
 	/**
-	 * True when the runtime ships Paper's async spawn API (Paper/Folia). Pure Spigot falls back to
-	 * {@link JoinLocationListener} + {@link org.spigotmc.event.player.PlayerSpawnLocationEvent}.
+	 * True when the runtime should use Paper's async spawn listener instead of deprecated
+	 * {@link org.spigotmc.event.player.PlayerSpawnLocationEvent}.
 	 */
-	private static boolean hasAsyncPlayerSpawnLocationEvent()
+	private static boolean shouldUseAsyncJoinLocationListener()
+	{
+		if (hasAsyncPlayerSpawnLocationEvent())
+		{
+			return true;
+		}
+
+		String serverName = org.bukkit.Bukkit.getServer().getName();
+		if (serverName != null)
+		{
+			String lower = serverName.toLowerCase(java.util.Locale.ROOT);
+			if (lower.contains("paper") || lower.contains("folia") || lower.contains("canvas"))
+			{
+				return true;
+			}
+		}
+
+		return hasPaperRuntimeClass("io.papermc.paper.PaperBootstrap")
+				|| hasPaperRuntimeClass("com.destroystokyo.paper.PaperConfig");
+	}
+
+	private static boolean hasPaperRuntimeClass(String className)
 	{
 		try
 		{
-			Class.forName("io.papermc.paper.event.player.AsyncPlayerSpawnLocationEvent");
+			Class.forName(className, false, WorldGuardExtraFlagsPlusPlugin.class.getClassLoader());
 			return true;
 		}
-		catch (ClassNotFoundException e)
+		catch (ClassNotFoundException ignored)
 		{
 			return false;
 		}
+	}
+
+	private static boolean hasAsyncPlayerSpawnLocationEvent()
+	{
+		return hasPaperRuntimeClass("io.papermc.paper.event.player.AsyncPlayerSpawnLocationEvent");
 	}
 
 	private void sendJoinLocationDeprecationWarning()

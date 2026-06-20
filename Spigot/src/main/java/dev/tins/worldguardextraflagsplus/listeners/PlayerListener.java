@@ -43,6 +43,7 @@ import dev.tins.worldguardextraflagsplus.wg.handlers.CollisionFlagHandler;
 import dev.tins.worldguardextraflagsplus.wg.handlers.FlyFlagHandler;
 import dev.tins.worldguardextraflagsplus.wg.handlers.GiveEffectsFlagHandler;
 import dev.tins.worldguardextraflagsplus.wg.handlers.GodmodeFlagHandler;
+import dev.tins.worldguardextraflagsplus.wg.handlers.HidePlayersFlagHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -103,7 +104,7 @@ public class PlayerListener implements Listener
 		});
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onPlayerDeathEvent(PlayerDeathEvent event)
 	{
 		Player player = event.getEntity();
@@ -359,6 +360,11 @@ public class PlayerListener implements Listener
 			WorldGuardUtils.getScheduler().runAtEntity(player, (wrappedTask) ->
 					KeepInventoryCombatLogSupport.restoreIfPending(player));
 		}
+
+		if (Config.isFlagEnabled("hide-players"))
+		{
+			HidePlayersFlagHandler.applyVisibilityForJoiningPlayer(player);
+		}
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR)
@@ -428,6 +434,7 @@ public class PlayerListener implements Listener
 		java.util.UUID playerId = event.getPlayer().getUniqueId();
 		FlyFlagHandler.clearPlayerCaches(playerId);
 		GodmodeFlagHandler.clearPlayerCaches(playerId);
+		HidePlayersFlagHandler.clearPlayerCaches(playerId);
 		Messages.clearCooldown(event.getPlayer());
 	}
 

@@ -152,8 +152,7 @@ public class BlockListener implements Listener
 			ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(location);
 			
 			// Check allow-block-place first
-			Set<Material> allowSet = regions.queryValue(localPlayer, Flags.ALLOW_BLOCK_PLACE);
-			if (allowSet != null && !allowSet.isEmpty() && allowSet.contains(type))
+			if (BlockAllowMembershipSupport.isAllowBlockPlaceAllowed(localPlayer, regions, type))
 			{
 				event.setResult(Event.Result.ALLOW);
 				continue;
@@ -203,8 +202,7 @@ public class BlockListener implements Listener
 			ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(location);
 			
 			// Check allow-block-break first
-			Set<Material> allowSet = regions.queryValue(localPlayer, Flags.ALLOW_BLOCK_BREAK);
-			if (allowSet != null && !allowSet.isEmpty() && allowSet.contains(type))
+			if (BlockAllowMembershipSupport.isAllowBlockBreakAllowed(localPlayer, regions, type))
 			{
 				event.setResult(Event.Result.ALLOW);
 				continue;

@@ -65,6 +65,11 @@ public class WorldGuardUtils
 	{
 		return plugin != null && plugin.isEnabled();
 	}
+
+	public static Plugin getPlugin()
+	{
+		return plugin;
+	}
 	
 	public static class SchedulerWrapper
 	{

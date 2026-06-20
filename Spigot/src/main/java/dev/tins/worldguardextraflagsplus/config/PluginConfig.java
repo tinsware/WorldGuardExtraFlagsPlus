@@ -46,6 +46,24 @@ public final class PluginConfig {
 	private KeepInventorySettings keepInventorySettings = new KeepInventorySettings();
 
 	@Comment({
+		"Allow-block-place settings",
+		"Controls behavior of the allow-block-place flag"
+	})
+	private AllowBlockPlaceSettings allowBlockPlaceSettings = new AllowBlockPlaceSettings();
+
+	@Comment({
+		"Allow-block-break settings",
+		"Controls behavior of the allow-block-break flag"
+	})
+	private AllowBlockBreakSettings allowBlockBreakSettings = new AllowBlockBreakSettings();
+
+	@Comment({
+		"WorldEdit flag settings",
+		"Usage notes for the worldedit region flag"
+	})
+	private WorldeditSettings worldeditSettings = new WorldeditSettings();
+
+	@Comment({
 		"Logging",
 		"-------"
 	})
@@ -102,6 +120,41 @@ public final class PluginConfig {
 			"Default: true"
 		})
 		private boolean combatLogRestore = true;
+	}
+
+	@Getter
+	@NoArgsConstructor
+	@Configuration
+	public static class AllowBlockPlaceSettings {
+		@Comment({
+			"When true, allow-block-place only applies to region members and owners.",
+			"Use with a material whitelist (e.g. OAK_WALL_SIGN) so only members can place those blocks.",
+			"Default: false"
+		})
+		private boolean requireMembership = false;
+	}
+
+	@Getter
+	@NoArgsConstructor
+	@Configuration
+	public static class AllowBlockBreakSettings {
+		@Comment({
+			"When true, allow-block-break only applies to region members and owners.",
+			"Default: false"
+		})
+		private boolean requireMembership = false;
+	}
+
+	@Getter
+	@NoArgsConstructor
+	@Configuration
+	public static class WorldeditSettings {
+		@Comment({
+			"Allow WorldEdit in __global__: /rg flag __global__ worldedit allow",
+			"Child regions with worldedit deny still block edits (WorldGuard priority applies).",
+			"Bypass permission: worldguardextraflagsplus.worldedit.bypass"
+		})
+		private boolean documentationOnly = true;
 	}
 
 
@@ -173,6 +226,10 @@ public final class PluginConfig {
 			"--------------"
 		})
 		private boolean blockedEffects = true;
+		@Comment({
+			"Effect syntax: /rg flag <region> give-effects night_vision",
+			"Also accepts minecraft:night_vision and optional amplifier/particles."
+		})
 		private boolean giveEffects = true;
 
 		@Comment({
@@ -219,6 +276,12 @@ public final class PluginConfig {
 			"Default: true"
 		})
 		private boolean chamberedEnderPearl = true;
+		@Comment({
+			"EXPERIMENTAL — hide-players flag",
+			"Hides players from others while inside a hide-players region (hub/lobby optimization).",
+			"Default: false — enable here and set hide-players: true on regions to use."
+		})
+		private boolean hidePlayers = false;
 	}
 }
 

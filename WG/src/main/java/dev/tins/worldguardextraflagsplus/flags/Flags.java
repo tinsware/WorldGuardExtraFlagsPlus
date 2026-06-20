@@ -77,6 +77,8 @@ public final class Flags
 	
 	public final static BooleanFlag DISABLE_COLLISION = new BooleanFlag("disable-collision");
 
+	public final static BooleanFlag HIDE_PLAYERS = new BooleanFlag("hide-players");
+
 	public final static SetFlag<String> DISABLE_COMPLETELY = new CustomSetFlag("disable-completely", new BlockableItemFlag(null));
 
 	public final static SetFlag<String> DISABLE_THROW = new CustomSetFlag("disable-throw", new ThrowableItemFlag(null));
