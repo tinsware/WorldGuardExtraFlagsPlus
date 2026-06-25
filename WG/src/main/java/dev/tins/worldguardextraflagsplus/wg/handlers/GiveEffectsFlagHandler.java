@@ -84,16 +84,22 @@ public class GiveEffectsFlagHandler extends FlagValueChangeHandler<Set<PotionEff
 	
 	private void handleValue(LocalPlayer player, World world, Set<PotionEffect> value)
 	{
+		if (value == null && this.givenEffects.isEmpty() && this.removedEffects.isEmpty())
+		{
+			return;
+		}
+
 		Player bukkitPlayer = ((BukkitPlayer) player).getPlayer();
-		
-		// Don't schedule tasks during shutdown
+
 		if (!WorldGuardUtils.isPluginEnabled() || !bukkitPlayer.isOnline())
 		{
 			return;
 		}
 
+		boolean shouldGive = value != null && !this.getSession().getManager().hasBypass(player, world);
+
 		WorldGuardUtils.getScheduler().runAtEntity(bukkitPlayer, task -> {
-			if (!this.getSession().getManager().hasBypass(player, world) && value != null)
+			if (shouldGive)
 			{
 				try
 				{
@@ -108,9 +114,9 @@ public class GiveEffectsFlagHandler extends FlagValueChangeHandler<Set<PotionEff
 								break;
 							}
 						}
-						
+
 						this.supressRemovePotionPacket = effect_ != null && effect_.getAmplifier() == effect.getAmplifier();
-		
+
 						if (this.givenEffects.add(effect.getType()) && effect_ != null)
 						{
 							this.removedEffects.put(effect_.getType(), new PotionEffectDetails(System.nanoTime() + (long)(effect_.getDuration() / 20D * TimeUnit.SECONDS.toNanos(1L)), effect_.getAmplifier(), effect_.isAmbient(), effect_.hasParticles()));
@@ -126,12 +132,12 @@ public class GiveEffectsFlagHandler extends FlagValueChangeHandler<Set<PotionEff
 					this.supressRemovePotionPacket = false;
 				}
 			}
-			
+
 			Iterator<PotionEffectType> effectTypes = this.givenEffects.iterator();
 			while (effectTypes.hasNext())
 			{
 				PotionEffectType type = effectTypes.next();
-				
+
 				if (value != null && value.size() > 0)
 				{
 					boolean skip = false;
@@ -143,7 +149,7 @@ public class GiveEffectsFlagHandler extends FlagValueChangeHandler<Set<PotionEff
 							break;
 						}
 					}
-					
+
 					if (skip)
 					{
 						continue;
@@ -151,10 +157,10 @@ public class GiveEffectsFlagHandler extends FlagValueChangeHandler<Set<PotionEff
 				}
 
 				bukkitPlayer.removePotionEffect(type);
-				
+
 				effectTypes.remove();
 			}
-			
+
 			Iterator<Entry<PotionEffectType, PotionEffectDetails>> potionEffects_ = this.removedEffects.entrySet().iterator();
 			while (potionEffects_.hasNext())
 			{
@@ -165,13 +171,13 @@ public class GiveEffectsFlagHandler extends FlagValueChangeHandler<Set<PotionEff
 					if (removedEffect != null)
 					{
 						int timeLeft = removedEffect.getTimeLeftInTicks();
-						
+
 						if (timeLeft > 0)
 						{
 							bukkitPlayer.addPotionEffect(new PotionEffect(effect.getKey(), timeLeft, removedEffect.getAmplifier(), removedEffect.isAmbient(), removedEffect.isParticles()), true);
 						}
 					}
-					
+
 					potionEffects_.remove();
 				}
 			}

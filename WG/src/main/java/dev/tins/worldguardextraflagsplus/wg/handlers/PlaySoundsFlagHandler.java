@@ -88,6 +88,11 @@ public class PlaySoundsFlagHandler extends FlagValueChangeHandler<Set<SoundData>
 	
 	private void handleValue(LocalPlayer player, Set<SoundData> value)
 	{
+		if ((value == null || value.isEmpty()) && this.runnables.isEmpty())
+		{
+			return;
+		}
+
 		Player bukkitPlayer = ((BukkitPlayer) player).getPlayer();
 
 		if (value != null && value.size() > 0)

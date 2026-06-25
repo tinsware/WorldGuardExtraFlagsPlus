@@ -74,53 +74,59 @@ public class BlockedEffectsFlagHandler extends FlagValueChangeHandler<Set<Potion
 	
 	private void handleValue(LocalPlayer player, World world, Set<PotionEffectType> value)
 	{
+		if (value == null && this.removedEffects.isEmpty())
+		{
+			return;
+		}
+
 		Player bukkitPlayer = ((BukkitPlayer) player).getPlayer();
-		
-		// Don't schedule tasks during shutdown
+
 		if (!WorldGuardUtils.isPluginEnabled() || !bukkitPlayer.isOnline())
 		{
 			return;
 		}
 
-		if (!this.getSession().getManager().hasBypass(player, world) && value != null)
-		{
-			for (PotionEffectType effectType : value)
-			{
-				PotionEffect effect = null;
-				for (PotionEffect activeEffect : bukkitPlayer.getActivePotionEffects())
-				{
-					if (activeEffect.getType().equals(effectType))
-					{
-						effect = activeEffect;
-						break;
-					}
-				}
-				
-				if (effect != null)
-				{
-					this.removedEffects.put(effect.getType(), new PotionEffectDetails(System.nanoTime() + (long) (effect.getDuration() / 20D * TimeUnit.SECONDS.toNanos(1L)), effect.getAmplifier(), effect.isAmbient(), effect.hasParticles()));
+		boolean shouldBlock = value != null && !this.getSession().getManager().hasBypass(player, world);
 
-					WorldGuardUtils.getScheduler().runAtEntity(bukkitPlayer, (wrappedTask) -> bukkitPlayer.removePotionEffect(effectType));
+		WorldGuardUtils.getScheduler().runAtEntity(bukkitPlayer, task -> {
+			if (shouldBlock)
+			{
+				for (PotionEffectType effectType : value)
+				{
+					PotionEffect effect = null;
+					for (PotionEffect activeEffect : bukkitPlayer.getActivePotionEffects())
+					{
+						if (activeEffect.getType().equals(effectType))
+						{
+							effect = activeEffect;
+							break;
+						}
+					}
+
+					if (effect != null)
+					{
+						this.removedEffects.put(effect.getType(), new PotionEffectDetails(System.nanoTime() + (long) (effect.getDuration() / 20D * TimeUnit.SECONDS.toNanos(1L)), effect.getAmplifier(), effect.isAmbient(), effect.hasParticles()));
+						bukkitPlayer.removePotionEffect(effectType);
+					}
 				}
 			}
-		}
-		
-		WorldGuardUtils.getScheduler().runAtEntity(bukkitPlayer, task -> {
+
 			Iterator<Entry<PotionEffectType, PotionEffectDetails>> iterator = this.removedEffects.entrySet().iterator();
-			
-			while (iterator.hasNext()) {
+			while (iterator.hasNext())
+			{
 				Entry<PotionEffectType, PotionEffectDetails> entry = iterator.next();
 				PotionEffectType type = entry.getKey();
-				
-				if (value == null || !value.contains(type)) {
+
+				if (value == null || !value.contains(type))
+				{
 					PotionEffectDetails details = entry.getValue();
 					int timeLeft = details.getTimeLeftInTicks();
-					
-					if (timeLeft > 0) {
-						PotionEffect effect = new PotionEffect(type, timeLeft, details.getAmplifier(), details.isAmbient(), details.isParticles());
-						bukkitPlayer.addPotionEffect(effect, true);
+
+					if (timeLeft > 0)
+					{
+						bukkitPlayer.addPotionEffect(new PotionEffect(type, timeLeft, details.getAmplifier(), details.isAmbient(), details.isParticles()), true);
 					}
-					
+
 					iterator.remove();
 				}
 			}
