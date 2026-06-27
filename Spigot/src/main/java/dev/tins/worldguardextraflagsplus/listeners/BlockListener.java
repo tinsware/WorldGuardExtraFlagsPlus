@@ -10,6 +10,7 @@ import com.sk89q.worldguard.bukkit.event.block.PlaceBlockEvent;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import com.sk89q.worldguard.session.SessionManager;
+import org.bukkit.ExplosionResult;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -18,6 +19,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.EntityBlockFormEvent;
 
 import com.sk89q.worldguard.protection.flags.StateFlag.State;
@@ -183,6 +185,7 @@ public class BlockListener implements Listener
 	{
 		Event.Result originalResult = event.getResult();
 		Object cause = event.getCause().getRootCause();
+
 		
 		if (!(cause instanceof Player player))
 		{
@@ -248,6 +251,18 @@ public class BlockListener implements Listener
 				event.setCancelled(true);
 			}
 		}
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+	public void onBlockExplosion(BlockExplodeEvent event) {
+		if(event.getExplosionResult() != ExplosionResult.DESTROY && event.getExplosionResult() != ExplosionResult.DESTROY_WITH_DECAY) return;
+		Location location = BukkitAdapter.adapt(event.getBlock().getLocation());
+		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(location);
+		if(!BlockAllowMembershipSupport.isAllowBlockBreakAllowed(regions, event.getExplodedBlockState().getType())) return;
+		event.setCancelled(false);
+
+
+
 	}
 }
 
