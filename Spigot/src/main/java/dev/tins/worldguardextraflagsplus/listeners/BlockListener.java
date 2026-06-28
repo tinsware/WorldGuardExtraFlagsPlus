@@ -8,8 +8,11 @@ import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.bukkit.event.block.BreakBlockEvent;
 import com.sk89q.worldguard.bukkit.event.block.PlaceBlockEvent;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
+import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import com.sk89q.worldguard.session.SessionManager;
+import dev.tins.worldguardextraflagsplus.WorldGuardExtraFlagsPlusPlugin;
+import net.kyori.adventure.text.Component;
 import org.bukkit.ExplosionResult;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -27,6 +30,7 @@ import com.sk89q.worldguard.protection.flags.StateFlag.State;
 import lombok.RequiredArgsConstructor;
 import dev.tins.worldguardextraflagsplus.flags.Flags;
 import dev.tins.worldguardextraflagsplus.Config;
+import org.bukkit.event.entity.EntityExplodeEvent;
 
 import java.util.Set;
 import java.util.Map;
@@ -187,8 +191,22 @@ public class BlockListener implements Listener
 		Object cause = event.getCause().getRootCause();
 
 		
-		if (!(cause instanceof Player player))
-		{
+		if (!(cause instanceof Player player)) {
+			for (Block block : event.getBlocks()) {
+				Material type = block.getType();
+				Location location = BukkitAdapter.adapt(block.getLocation());
+				ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(location);
+				if (BlockAllowMembershipSupport.isAllowBlockBreakAllowed(null, regions, type)) {
+					block.breakNaturally();
+					continue;
+				}
+				Set<Material> denySet = regions.queryValue(null, Flags.DENY_BLOCK_BREAK);
+				if (denySet != null && !denySet.isEmpty() && denySet.contains(type)) {
+					event.setResult(Event.Result.DENY);
+					return;
+				}
+				event.setResult(originalResult);
+			}
 			return;
 		}
 		
@@ -203,23 +221,19 @@ public class BlockListener implements Listener
 			Material type = block.getType();
 			Location location = BukkitAdapter.adapt(block.getLocation());
 			ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(location);
-			
-			// Check allow-block-break first
+
 			if (BlockAllowMembershipSupport.isAllowBlockBreakAllowed(localPlayer, regions, type))
 			{
 				event.setResult(Event.Result.ALLOW);
 				continue;
 			}
-			
-			// Check deny-block-break
+
 			Set<Material> denySet = regions.queryValue(localPlayer, Flags.DENY_BLOCK_BREAK);
 			if (denySet != null && !denySet.isEmpty() && denySet.contains(type))
 			{
 				event.setResult(Event.Result.DENY);
 				return;
 			}
-			
-			// Restore original result if no flags matched
 			event.setResult(originalResult);
 		}
 	}
@@ -253,17 +267,6 @@ public class BlockListener implements Listener
 		}
 	}
 
-	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-	public void onBlockExplosion(BlockExplodeEvent event) {
-		if(event.getExplosionResult() != ExplosionResult.DESTROY && event.getExplosionResult() != ExplosionResult.DESTROY_WITH_DECAY) return;
-		Location location = BukkitAdapter.adapt(event.getBlock().getLocation());
-		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(location);
-		if(!BlockAllowMembershipSupport.isAllowBlockBreakAllowed(regions, event.getExplodedBlockState().getType())) return;
-		event.setCancelled(false);
-
-
-
-	}
 }
 
 
