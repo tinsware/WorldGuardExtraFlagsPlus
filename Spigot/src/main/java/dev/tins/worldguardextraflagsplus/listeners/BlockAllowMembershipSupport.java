@@ -71,4 +71,14 @@ final class BlockAllowMembershipSupport
 				dev.tins.worldguardextraflagsplus.flags.Flags.ALLOW_BLOCK_BREAK,
 				Config.isAllowBlockBreakRequireMembership());
 	}
+
+	static boolean isAllowBlockBreakAllowed(ApplicableRegionSet regions, Material material)
+	{
+		return isMaterialAllowed(
+				null,
+				regions,
+				material,
+				dev.tins.worldguardextraflagsplus.flags.Flags.ALLOW_BLOCK_BREAK,
+				Config.isAllowBlockBreakRequireMembership());
+	}
 }
