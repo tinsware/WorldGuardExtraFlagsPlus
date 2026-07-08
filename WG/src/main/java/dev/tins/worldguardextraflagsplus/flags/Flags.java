@@ -90,6 +90,13 @@ public final class Flags
 	public final static Flag<String> PLAYER_COUNT_LIMIT = new IntegerFlag("player-count-limit");
 
 	public final static StateFlag CHAMBERED_ENDERPEARL = new StateFlag("chambered-enderpearl", true);
+
+	/**
+	 * Controls whether lightning strikes deal damage to players in this region.
+	 * Default is allow (true) — lightning deals damage normally.
+	 * Set to deny to show the lightning visually but cancel the damage to players.
+	 */
+	public final static StateFlag LIGHTNING_DAMAGE = new StateFlag("lightning-damage", true);
 }
 
 
