@@ -162,6 +162,20 @@ if (Config.isFlagEnabled("your-flag"))
 
 Use the short class name — the wildcard import `dev.tins.worldguardextraflagsplus.listeners.*` is already at the top of the file.
 
+### 9. Add metadata to `FlagDescriptions`
+
+Every flag must have a human-readable entry in `Spigot/src/main/java/dev/tins/worldguardextraflagsplus/api/FlagDescriptions.java`.
+Add a line in the static initialiser block:
+
+```java
+ALL.put("your-flag", new FlagMeta(
+    "Short description of what the flag does.",
+    "Accepted value types (e.g. allow/deny, true/false, material names)",
+    "/rg flag <region> your-flag example-value"));
+```
+
+This metadata is used by the plugin's own commands and by external GUI plugins (e.g. WG-GUI) to display flag tooltips.
+
 ---
 
 ## Folia Compatibility

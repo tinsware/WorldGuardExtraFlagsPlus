@@ -959,6 +959,18 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 		
 		return flags;
 	}
+
+	/**
+	 * Returns the human-readable metadata (description, accepted values, usage example) for every
+	 * registered flag. External plugins such as WG-GUI can call this method (via soft-dependency
+	 * or reflection) to display flag tooltips inside their own UIs.
+	 *
+	 * @return unmodifiable map of flag name → {@link FlagMeta}
+	 */
+	public static java.util.Map<String, dev.tins.worldguardextraflagsplus.api.FlagDescriptions.FlagMeta> getFlagDescriptions()
+	{
+		return dev.tins.worldguardextraflagsplus.api.FlagDescriptions.getAll();
+	}
 }
 
 
