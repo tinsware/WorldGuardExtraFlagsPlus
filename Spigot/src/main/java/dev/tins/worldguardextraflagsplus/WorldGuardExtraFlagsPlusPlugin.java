@@ -142,6 +142,7 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 			if (Config.isFlagEnabled("disable-collision")) flagRegistry.register(Flags.DISABLE_COLLISION);
 			if (Config.isFlagEnabled("chambered-enderpearl")) flagRegistry.register(Flags.CHAMBERED_ENDERPEARL);
 			if (Config.isFlagEnabled("hide-players")) flagRegistry.register(Flags.HIDE_PLAYERS);
+			if (Config.isFlagEnabled("lightning-damage")) flagRegistry.register(Flags.LIGHTNING_DAMAGE);
 		}
 		catch (Exception e)
 		{
@@ -234,6 +235,13 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 		if (Config.isFlagEnabled("hide-players"))
 		{
 			this.sessionManager.registerHandler(HidePlayersFlagHandler.FACTORY, null);
+		}
+
+		if (Config.isFlagEnabled("lightning-damage"))
+		{
+			this.getServer().getPluginManager().registerEvents(
+					new dev.tins.worldguardextraflagsplus.listeners.LightningDamageListener(
+							this.worldGuardPlugin, this.regionContainer, this.sessionManager), this);
 		}
 
 		// Register PlayerListener (contains multiple event handlers)

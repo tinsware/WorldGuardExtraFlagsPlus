@@ -234,6 +234,7 @@ public class Config
 			case "disable-collision": return flags.isDisableCollision();
 			case "chambered-enderpearl": return flags.isChamberedEnderPearl();
 			case "hide-players": return flags.isHidePlayers();
+			case "lightning-damage": return flags.isLightningDamage();
 
 			default: return true; // Default to enabled for unknown flags
 		}

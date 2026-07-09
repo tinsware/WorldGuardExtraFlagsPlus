@@ -282,6 +282,17 @@ public final class PluginConfig {
 			"Default: false — enable here and set hide-players: true on regions to use."
 		})
 		private boolean hidePlayers = false;
+
+		@Comment({
+			"WEATHER & ENVIRONMENTAL DAMAGE",
+			"------------------------------",
+			"lightning-damage flag",
+			"When set to deny on a region, players won't take damage from lightning strikes",
+			"but the visual effect is still shown. Useful for PvP arenas.",
+			"Usage: /rg flag <region> lightning-damage deny",
+			"Default: true"
+		})
+		private boolean lightningDamage = true;
 	}
 }
 
