@@ -97,6 +97,14 @@ public final class Flags
 	 * Set to deny to show the lightning visually but cancel the damage to players.
 	 */
 	public final static StateFlag LIGHTNING_DAMAGE = new StateFlag("lightning-damage", true);
+
+	/**
+	 * Repeats a console command at a fixed interval while a player stays in the region.
+	 * Each entry format: {@code <seconds> <command>}
+	 * Interval must be between 1 and 60 seconds.
+	 * Usage: /rg flag <region> console-command-repeat "20 give %player% diamond 1"
+	 */
+	public final static SetFlag<String> CONSOLE_COMMAND_REPEAT = new CustomSetFlag("console-command-repeat", new CommandStringCaseSensitiveFlag(null));
 }
 
 

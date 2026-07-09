@@ -44,7 +44,7 @@ WorldGuard allows protecting areas of land by the creation of regions which then
 WorldGuard provides an API that 3th party plugins can use to provide their own flags.
 
 This plugin adds extra flags to allow customizing regions even further.
-WorldGuard ExtraFlags Plus is extension to WorldGuard that adds 43+ new flags!
+WorldGuard ExtraFlags Plus is extension to WorldGuard that adds 44+ new flags!
 
 ## New updates & features developed by (WorldGuard ExtraFlags Plus)
 

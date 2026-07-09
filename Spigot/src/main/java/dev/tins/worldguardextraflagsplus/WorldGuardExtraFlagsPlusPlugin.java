@@ -143,6 +143,7 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 			if (Config.isFlagEnabled("chambered-enderpearl")) flagRegistry.register(Flags.CHAMBERED_ENDERPEARL);
 			if (Config.isFlagEnabled("hide-players")) flagRegistry.register(Flags.HIDE_PLAYERS);
 			if (Config.isFlagEnabled("lightning-damage")) flagRegistry.register(Flags.LIGHTNING_DAMAGE);
+			if (Config.isFlagEnabled("console-command-repeat")) flagRegistry.register(Flags.CONSOLE_COMMAND_REPEAT);
 		}
 		catch (Exception e)
 		{
@@ -242,6 +243,11 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 			this.getServer().getPluginManager().registerEvents(
 					new LightningDamageListener(
 							this.worldGuardPlugin, this.regionContainer, this.sessionManager), this);
+		}
+
+		if (Config.isFlagEnabled("console-command-repeat"))
+		{
+			this.sessionManager.registerHandler(ConsoleCommandRepeatFlagHandler.FACTORY(), null);
 		}
 
 		// Register PlayerListener (contains multiple event handlers)

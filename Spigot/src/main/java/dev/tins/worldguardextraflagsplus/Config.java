@@ -235,6 +235,7 @@ public class Config
 			case "chambered-enderpearl": return flags.isChamberedEnderPearl();
 			case "hide-players": return flags.isHidePlayers();
 			case "lightning-damage": return flags.isLightningDamage();
+			case "console-command-repeat": return flags.isConsoleCommandRepeat();
 
 			default: return true; // Default to enabled for unknown flags
 		}

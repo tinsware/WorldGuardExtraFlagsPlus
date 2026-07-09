@@ -293,6 +293,17 @@ public final class PluginConfig {
 			"Default: true"
 		})
 		private boolean lightningDamage = true;
+
+		@Comment({
+			"COMMAND REPEAT",
+			"-------------",
+			"console-command-repeat flag",
+			"Repeats a console command at a fixed interval while a player stays in the region.",
+			"Each entry format: \"<seconds> <command>\" — interval 1-60 seconds.",
+			"Usage: /rg flag <region> console-command-repeat \"20 give %player% diamond 1\"",
+			"Default: false (disabled — opt-in)"
+		})
+		private boolean consoleCommandRepeat = false;
 	}
 }
 

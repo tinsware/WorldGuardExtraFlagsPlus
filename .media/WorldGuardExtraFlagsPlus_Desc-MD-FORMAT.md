@@ -52,7 +52,7 @@ WorldGuard protects land by defining regions.
 
 ---
 
-## Included Flags (40+)
+## Included Flags (44+)
 
 > Here’s a quick overview — all managed with standard WorldGuard flag commands.
 
@@ -73,7 +73,7 @@ WorldGuard protects land by defining regions.
 [villager-trade]  [lightning-damage]  [disable-collision]  [deny-item-drops / deny-item-pickup]
 [allow-block-place / deny-block-place]  [allow-block-break / deny-block-break]
 [permit-workbenches]  [inventory-craft]  [player-count-limit]
-[chambered-enderpearl](experimental)
+[console-command-repeat]  [chambered-enderpearl](experimental)
 ```
 
 ---
