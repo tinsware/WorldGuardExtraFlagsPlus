@@ -240,7 +240,7 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 		if (Config.isFlagEnabled("lightning-damage"))
 		{
 			this.getServer().getPluginManager().registerEvents(
-					new dev.tins.worldguardextraflagsplus.listeners.LightningDamageListener(
+					new LightningDamageListener(
 							this.worldGuardPlugin, this.regionContainer, this.sessionManager), this);
 		}
 
