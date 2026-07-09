@@ -780,6 +780,25 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 		eventManager.getClass().getMethod("registerListener", listenerCommonClass).invoke(eventManager, abstractListener);
 
 		this.disableCompletelyPacketEventsListener = abstractListener;
+
+		// Register quit listener to clean up per-player tracked slot data.
+		// Uses reflection to call removePlayer(UUID) since the impl type is loaded reflectively.
+		final java.lang.reflect.Method removePlayer = listenerImplClass.getMethod("removePlayer", java.util.UUID.class);
+		final Object implRef = listenerImpl;
+		this.getServer().getPluginManager().registerEvents(new org.bukkit.event.Listener()
+		{
+			@org.bukkit.event.EventHandler
+			public void onQuit(org.bukkit.event.player.PlayerQuitEvent e)
+			{
+				try
+				{
+					removePlayer.invoke(implRef, e.getPlayer().getUniqueId());
+				}
+				catch (Throwable ignored)
+				{
+				}
+			}
+		}, this);
 	}
 
 	private void unregisterDisableCompletelyPacketEventsHookReflect()
@@ -827,6 +846,24 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 		Class<?> packetListenerClass = Class.forName("com.comphenix.protocol.events.PacketListener", true, cl);
 		protocolManager.getClass().getMethod("addPacketListener", packetListenerClass).invoke(protocolManager, listener);
 		this.disableCompletelyProtocolLibListener = listener;
+
+		// Register quit listener to clean up per-player tracked slot data.
+		final java.lang.reflect.Method removePlayer = listenerClass.getMethod("removePlayer", java.util.UUID.class);
+		final Object listenerRef = listener;
+		this.getServer().getPluginManager().registerEvents(new org.bukkit.event.Listener()
+		{
+			@org.bukkit.event.EventHandler
+			public void onQuit(org.bukkit.event.player.PlayerQuitEvent e)
+			{
+				try
+				{
+					removePlayer.invoke(listenerRef, e.getPlayer().getUniqueId());
+				}
+				catch (Throwable ignored)
+				{
+				}
+			}
+		}, this);
 	}
 
 	private void unregisterDisableCompletelyProtocolLibHookReflect()
