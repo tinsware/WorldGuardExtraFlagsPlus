@@ -27,6 +27,7 @@ If you're upgrading from [I]WorldGuardExtraFlags[/I] to [I]WorldGuardExtraFlagsP
 [*]💬 [B]Customizable messages[/B] via [I]messages-wgefp.yml[/I] (disable, recolor, or use placeholders)
 [*]🔁 [B]Message cooldown system[/B] – prevents spam (default: 3 seconds)
 [*]🏪 [B]New flag:[/B] [I]villager-trade[/I] – control villager trading in regions
+[*]⚡ [B]New flag:[/B] [I]lightning-damage[/I] – lightning strikes appear visually but don't damage players when set to deny — ideal for PvP arenas
 [*]🚫 [B]New flag:[/B] [I]disable-collision[/I] – disable player collision in regions
   [*][I]Uses Minecraft's native scoreboard teams to control collision. TAB plugin is supported with API integration. May conflict with other plugins that use teams. See (public-documents/disable-collision flag documentation.md) for details.[/I]
 [*]📝 [B]PlaceholderAPI Chat Integration[/B] – chat prefix/suffix supports PlaceholderAPI placeholders
@@ -47,7 +48,7 @@ WorldGuard protects land by defining regions.
 
 
 
-[B][SIZE=5]Included Flags (30+)[/SIZE][/B]
+[B][SIZE=5]Included Flags (40+)[/SIZE][/B]
 Here's a quick overview — all managed with standard WorldGuard flag commands.
 
 [CODE]
@@ -64,7 +65,7 @@ Here's a quick overview — all managed with standard WorldGuard flag commands.
 [CODE]
 [disable-completely]  [disable-throw]
 [entry-min-level / entry-max-level]
-[villager-trade]  [disable-collision]  [deny-item-drops / deny-item-pickup]
+[villager-trade]  [lightning-damage]  [disable-collision]  [deny-item-drops / deny-item-pickup]
 [allow-block-place / deny-block-place]  [allow-block-break / deny-block-break]
 [permit-workbenches]  [inventory-craft]  [player-count-limit]
 [chambered-enderpearl](experimental)

@@ -27,6 +27,7 @@
 - **hide-players flag** (experimental) | Hub/lobby visibility optimization — opt-in in config ✅
 - **Session tick performance** | Faster `blocked-effects`, `give-effects`, and `play-sounds` handlers when flags are inactive ✅
 - New Flag **"villager-trade"** | Control villager trading in regions ✅
+- New Flag **"lightning-damage"** | Lightning strikes appear visually but don't damage players when set to deny — ideal for PvP arenas ✅
 - New Flag **"disable-collision"** | Disable player collision in regions ✅
   - *Uses Minecraft's native scoreboard teams to control collision. TAB plugin is supported with API integration. May conflict with other plugins that use teams. See [documentation](public-documents/disable-collision%20flag%20documentation.md) for details.*
 - **PlaceholderAPI Chat Integration** | Chat prefix/suffix supports PlaceholderAPI placeholders ✅
@@ -43,7 +44,7 @@ WorldGuard allows protecting areas of land by the creation of regions which then
 WorldGuard provides an API that 3th party plugins can use to provide their own flags.
 
 This plugin adds extra flags to allow customizing regions even further.
-WorldGuard ExtraFlags Plus is extension to WorldGuard that adds 38+ new flags!
+WorldGuard ExtraFlags Plus is extension to WorldGuard that adds 43+ new flags!
 
 ## New updates & features developed by (WorldGuard ExtraFlags Plus)
 

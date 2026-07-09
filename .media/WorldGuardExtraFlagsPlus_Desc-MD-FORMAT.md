@@ -30,6 +30,7 @@ An advanced WorldGuard extension that adds over 30+ extra region flags for full 
 - 💬 **Customizable messages** via `messages-wgefp.yml` (disable, recolor, or use placeholders)
 - 🔁 **Message cooldown system** to prevent spam (default 3 seconds)
 - 🏪 **New flag:** `villager-trade` – control villager trading in regions
+- ⚡ **New flag:** `lightning-damage` – lightning strikes appear visually but don't damage players when set to deny — ideal for PvP arenas
 - 🚫 **New flag:** `disable-collision` – disable player collision in regions
   - *Uses Minecraft's native scoreboard teams to control collision. TAB plugin is supported with API integration. May conflict with other plugins that use teams. See (public-documents/disable-collision flag documentation.md) for details.*
 - 📝 **PlaceholderAPI Chat Integration** – chat prefix/suffix supports PlaceholderAPI placeholders
@@ -51,7 +52,7 @@ WorldGuard protects land by defining regions.
 
 ---
 
-## Included Flags (30+)
+## Included Flags (40+)
 
 > Here’s a quick overview — all managed with standard WorldGuard flag commands.
 
@@ -69,7 +70,7 @@ WorldGuard protects land by defining regions.
 ```
 [disable-completely]  [disable-throw]
 [entry-min-level / entry-max-level]
-[villager-trade]  [disable-collision]  [deny-item-drops / deny-item-pickup]
+[villager-trade]  [lightning-damage]  [disable-collision]  [deny-item-drops / deny-item-pickup]
 [allow-block-place / deny-block-place]  [allow-block-break / deny-block-break]
 [permit-workbenches]  [inventory-craft]  [player-count-limit]
 [chambered-enderpearl](experimental)
