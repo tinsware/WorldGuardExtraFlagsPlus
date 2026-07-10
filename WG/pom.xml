@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>dev.tins</groupId>
 		<artifactId>worldguardextraflagsplus</artifactId>
-		<version>4.4.1</version>
+		<version>4.4.2</version>
 	</parent>
 
 	<groupId>dev.tins.worldguardextraflagsplus</groupId>

@@ -1,6 +1,6 @@
 # WorldGuard ExtraFlags Plus
 
-**Release 4.4.1**
+**Release 4.4.2**
 
 An advanced WorldGuard extension that adds over 30+ extra region flags for full control of player behavior, teleportation, and region rules — featuring Folia support, item blocking (Mace, Firework, Wind Charge, Totem, vanilla Spears), throwable-only blocking (`disable-throw` for egg, snowball, pearl, XP bottle), optional PacketEvents/ProtocolLib packet hooks for full `disable-completely` coverage, and fully customizable messages.
 
@@ -42,6 +42,7 @@ An advanced WorldGuard extension that adds over 30+ extra region flags for full 
 - 🛡️ **Godmode & Fly Flag Enhancement** – The `godmode` and `fly` flags now also disable EssentialsX godmode/fly when entering regions with these flags disabled (EssentialsX integration)
 - 👥 **New flag:** `player-count-limit` – limit maximum number of players in a region
 - 🎯 **New flag (experimental):** `chambered-enderpearl` – mitigates chambered ender pearl bypasses (pearls thrown outside denied regions are removed when the shooter enters a region where the flag denies); subject to change.
+- 🔁 **New flag:** `console-command-repeat` – repeats a console command at a fixed interval (1-60 seconds) while a player stays in the region. Disabled by default. Usage: `/rg flag <region> console-command-repeat "20 give %player% diamond 1"`
 
 ---
 
@@ -73,7 +74,7 @@ WorldGuard protects land by defining regions.
 [villager-trade]  [lightning-damage]  [disable-collision]  [deny-item-drops / deny-item-pickup]
 [allow-block-place / deny-block-place]  [allow-block-break / deny-block-break]
 [permit-workbenches]  [inventory-craft]  [player-count-limit]
-[console-command-repeat]  [chambered-enderpearl](experimental)
+[hide-players](experimental)  [console-command-repeat]  [chambered-enderpearl](experimental)
 ```
 
 ---
@@ -90,7 +91,7 @@ For comprehensive usage examples and detailed flag documentation, see:
 
 | Minecraft       | WorldGuard | ExtraFlagsPlus | Support   |
 | --------------- | ---------- | -------------- | --------- |
-| 1.20 – 1.21.11 | 7.0.15+    | 4.4.1+         | ✅ Active |
+| 1.20 – 1.21.11 / 26.2+ | 7.0.15+    | 4.4.2+         | ✅ Active |
 | 1.7 – 1.19     | Older      | ❌ No support  |           |
 
 The jar declares **`api-version: 1.21`** in `plugin.yml` so Paper **1.21.x** servers (and forks such as Canvas) load it; the project still compiles against the pinned Paper API artifact in the root `pom.xml`.
@@ -118,7 +119,7 @@ All plugin messages live in `plugins/WorldGuard/messages-wgefp.yml`.
 
 ## Support & Community
 
-- 📜 **Changelog:** [CHANGELOG.md](https://github.com/tins-dev/WorldGuardExtraFlagsPlus/blob/master/CHANGELOG.md) — release **4.4.1**
+- 📜 **Changelog:** [CHANGELOG.md](https://github.com/tins-dev/WorldGuardExtraFlagsPlus/blob/master/CHANGELOG.md) — release **4.4.2**
 - 💬 **Discord:** [Join our Discord server](https://discord.gg/TCJAwsdqum)
 
 ---

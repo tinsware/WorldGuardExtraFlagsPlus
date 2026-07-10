@@ -1,6 +1,6 @@
 # WorldGuard ExtraFlags Plus - Flag Usage Examples
 
-**Plugin release:** 4.4.1
+**Plugin release:** 4.4.2
 
 ## Usage
 
