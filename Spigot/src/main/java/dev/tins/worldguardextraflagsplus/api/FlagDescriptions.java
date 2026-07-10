@@ -249,7 +249,7 @@ public final class FlagDescriptions
 
 		// ── REPEATING COMMANDS ──────────────────────────────────────────
 		ALL.put("console-command-repeat", new FlagMeta(
-				"Repeats a console command at a fixed interval while the player stays in the region. Format: <seconds> <command> — quote the whole pair as one string. Interval 1-60 seconds. Supports PlaceholderAPI. Disabled by default — enable via config.",
+				"Repeats a console command at a fixed interval while the player stays in the region. Format: <seconds> <command> — quote the whole pair as one string. Interval 1-60 seconds. Cooldown persists across region exits: leaving and re-entering does NOT reset the timer. Supports PlaceholderAPI. Disabled by default — enable via config.",
 				"\"<seconds> <command>\" (quoted string)",
 				"/rg flag <region> console-command-repeat \"20 give %player% diamond 1\""));
 	}

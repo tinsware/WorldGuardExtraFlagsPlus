@@ -32,8 +32,14 @@ import org.bukkit.entity.Player;
  * Folia-safe task on the player's entity thread that dispatches the command from console
  * with placeholder replacement.</p>
  *
- * <p>When the player leaves all applicable regions (or the flag is removed), all
- * timers are cancelled. On disconnect, all timers are cleaned up.</p>
+ * <p><b>Cooldown persistence:</b> The handler tracks the last execution time of each
+ * entry. When the player leaves the region (or the flag changes), the timer is cancelled
+ * but the timestamp is preserved. On re-entry, the remaining interval is calculated so
+ * that the cooldown survives exit/re-entry cycles. This prevents reward farming by
+ * rapidly entering and exiting the region.</p>
+ *
+ * <p>On the very first entry (no recorded execution), the command does <b>not</b> fire
+ * immediately — the player must wait the full interval once.</p>
  */
 public class ConsoleCommandRepeatFlagHandler extends FlagValueChangeHandler<Set<String>>
 {
@@ -58,11 +64,19 @@ public class ConsoleCommandRepeatFlagHandler extends FlagValueChangeHandler<Set<
 	 */
 	private final Map<String, WrappedRunnable> runnables;
 
+	/**
+	 * Map of entry string -> epoch millis of the last command execution.
+	 * Persists across region exit/re-entry so the cooldown is not reset.
+	 * Only cleared when the session is destroyed (player disconnect).
+	 */
+	private final Map<String, Long> lastExecutionTimes;
+
 	protected ConsoleCommandRepeatFlagHandler(Session session)
 	{
 		super(session, Flags.CONSOLE_COMMAND_REPEAT);
 
 		this.runnables = new ConcurrentHashMap<>();
+		this.lastExecutionTimes = new ConcurrentHashMap<>();
 	}
 
 	@Override
@@ -100,6 +114,11 @@ public class ConsoleCommandRepeatFlagHandler extends FlagValueChangeHandler<Set<
 	/**
 	 * Compares the new value set against currently running timers and starts or
 	 * stops entries as needed.
+	 *
+	 * <p>When starting a new timer, the initial delay is calculated from
+	 * {@link #lastExecutionTimes} so that the cooldown persists across region
+	 * exits and re-entries. If no previous execution is recorded, the full
+	 * interval is used as the initial delay (no instant first payout).</p>
 	 */
 	private void handleValue(LocalPlayer player, Set<String> value)
 	{
@@ -129,6 +148,26 @@ public class ConsoleCommandRepeatFlagHandler extends FlagValueChangeHandler<Set<
 					continue; // Invalid entry, skip silently
 				}
 
+				// Calculate initial delay based on last execution time.
+				// On first ever entry, wait the full interval before any payout.
+				// On re-entry, resume the remaining cooldown to prevent farming.
+				final String entryStr = entry;
+				final RepeatingCommand parsedCommand = parsed;
+				final long now = System.currentTimeMillis();
+				Long lastExecution = this.lastExecutionTimes.get(entryStr);
+				final long initialDelay;
+
+				if (lastExecution == null)
+				{
+					initialDelay = parsedCommand.intervalMillis;
+				}
+				else
+				{
+					long elapsed = now - lastExecution;
+					long remaining = parsedCommand.intervalMillis - elapsed;
+					initialDelay = Math.max(0L, remaining);
+				}
+
 				WrappedRunnable runnable = new WrappedRunnable()
 				{
 					private WrappedTask wrappedTask;
@@ -136,7 +175,8 @@ public class ConsoleCommandRepeatFlagHandler extends FlagValueChangeHandler<Set<
 					@Override
 					public void run()
 					{
-						String processed = CommandPlaceholderUtil.prepareForDispatch(player, parsed.command);
+						lastExecutionTimes.put(entryStr, System.currentTimeMillis());
+						String processed = CommandPlaceholderUtil.prepareForDispatch(player, parsedCommand.command);
 						if (!processed.isEmpty())
 						{
 							WorldGuardUtils.getScheduler().runNextTick(task ->
@@ -166,8 +206,8 @@ public class ConsoleCommandRepeatFlagHandler extends FlagValueChangeHandler<Set<
 				WrappedTask task = WorldGuardUtils.getScheduler().runAtEntityTimer(
 						bukkitPlayer,
 						runnable,
-						0L,
-						parsed.intervalMillis,
+						initialDelay,
+						parsedCommand.intervalMillis,
 						TimeUnit.MILLISECONDS);
 				runnable.setWrappedTask(task);
 
@@ -175,7 +215,9 @@ public class ConsoleCommandRepeatFlagHandler extends FlagValueChangeHandler<Set<
 			}
 		}
 
-		// Cancel any running timers whose entry is no longer in the set
+		// Cancel any running timers whose entry is no longer in the set.
+		// lastExecutionTimes is intentionally NOT cleared here — it persists
+		// so the cooldown carries across region exits and re-entries.
 		Iterator<Entry<String, WrappedRunnable>> iterator = this.runnables.entrySet().iterator();
 		while (iterator.hasNext())
 		{
