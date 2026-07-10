@@ -151,6 +151,10 @@ public class ConsoleCommandRepeatFlagHandler extends FlagValueChangeHandler<Set<
 				// Calculate initial delay based on last execution time.
 				// On first ever entry, wait the full interval before any payout.
 				// On re-entry, resume the remaining cooldown to prevent farming.
+				// If the cooldown has already expired (remaining <= 0), fire one
+				// catch-up command immediately via runNextTick and start the
+				// repeating timer at the full interval — avoids passing 0L to
+				// runAtEntityTimer which triggers a FoliaLib warning.
 				final String entryStr = entry;
 				final RepeatingCommand parsedCommand = parsed;
 				final long now = System.currentTimeMillis();
@@ -165,7 +169,26 @@ public class ConsoleCommandRepeatFlagHandler extends FlagValueChangeHandler<Set<
 				{
 					long elapsed = now - lastExecution;
 					long remaining = parsedCommand.intervalMillis - elapsed;
-					initialDelay = Math.max(0L, remaining);
+					if (remaining > 0L)
+					{
+						initialDelay = remaining;
+					}
+					else
+					{
+						// Interval elapsed while the player was away —
+						// dispatch one make-up command now, then resume normally.
+						lastExecutionTimes.put(entryStr, now);
+						String processed = CommandPlaceholderUtil.prepareForDispatch(player, parsedCommand.command);
+						if (!processed.isEmpty())
+						{
+							WorldGuardUtils.getScheduler().runNextTick(task ->
+							{
+								CommandSender console = Bukkit.getServer().getConsoleSender();
+								Bukkit.getServer().dispatchCommand(console, processed);
+							});
+						}
+						initialDelay = parsedCommand.intervalMillis;
+					}
 				}
 
 				WrappedRunnable runnable = new WrappedRunnable()
