@@ -104,7 +104,7 @@ public final class Flags
 	 * Interval must be between 1 and 60 seconds.
 	 * Usage: /rg flag <region> console-command-repeat "20 give %player% diamond 1"
 	 */
-	public final static SetFlag<String> CONSOLE_COMMAND_REPEAT = new CustomSetFlag("console-command-repeat", new CommandStringCaseSensitiveFlag(null));
+	public final static SetFlag<String> CONSOLE_COMMAND_REPEAT = new CustomSetFlag("console-command-repeat", new RepeatCommandEntryFlag(null));
 }
 
 

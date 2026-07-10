@@ -246,6 +246,12 @@ public final class FlagDescriptions
 				"Controls whether lightning strikes deal damage to players. When denied, lightning appears visually but causes no damage. Ideal for PvP arenas.",
 				"allow / deny",
 				"/rg flag <region> lightning-damage deny"));
+
+		// ── REPEATING COMMANDS ──────────────────────────────────────────
+		ALL.put("console-command-repeat", new FlagMeta(
+				"Repeats a console command at a fixed interval while the player stays in the region. Format: <seconds> <command> — quote the whole pair as one string. Interval 1-60 seconds. Supports PlaceholderAPI. Disabled by default — enable via config.",
+				"\"<seconds> <command>\" (quoted string)",
+				"/rg flag <region> console-command-repeat \"20 give %player% diamond 1\""));
 	}
 
 	private FlagDescriptions()

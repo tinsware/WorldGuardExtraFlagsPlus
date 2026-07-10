@@ -101,6 +101,19 @@ Customize **`disable-throw-blocked`** in `messages-wgefp.yml` (placeholder `{ite
 /rg flag spawn chat-suffix " &7[%player_level%]"
 ```
 
+#### Repeating Console Commands
+```bash
+# Quote the entire "<seconds> <command>" as one string:
+/rg flag arena console-command-repeat "20 give %player% diamond 1"
+/rg flag arena console-command-repeat "5 eco give %player% 10"
+/rg flag arena console-command-repeat clear
+```
+
+#### Play Sounds
+```bash
+/rg flag spawn play-sounds minecraft:block.note_block.pling
+```
+
 ## Flag Categories
 
 ### Location & Teleportation
@@ -111,10 +124,12 @@ Customize **`disable-throw-blocked`** in `messages-wgefp.yml` (placeholder `{ite
 ### Command Execution
 - `command-on-entry` / `command-on-exit`
 - `console-command-on-entry` / `console-command-on-exit`
+- `console-command-repeat`
 
 ### Movement & Speed Control
 - `walk-speed` / `fly-speed`
 - `fly` / `glide`
+- `frostwalker`
 
 ### Protection & Survival
 - `godmode` / `keep-inventory` / `keep-exp`
@@ -125,9 +140,10 @@ Customize **`disable-throw-blocked`** in `messages-wgefp.yml` (placeholder `{ite
 
 ### Effect Control
 - `blocked-effects` / `give-effects`
+- `play-sounds`
 
 ### World Interaction
-- `worldedit` / `play-sounds`
+- `worldedit`
 - `nether-portals` / `chunk-unload`
 - `villager-trade` / `inventory-craft`
 
@@ -143,6 +159,8 @@ Customize **`disable-throw-blocked`** in `messages-wgefp.yml` (placeholder `{ite
 
 ### Special Features
 - `disable-collision`
+- `hide-players` *(experimental)*
+- `lightning-damage`
 - `chambered-enderpearl` *(experimental)*
 
 ## Notes

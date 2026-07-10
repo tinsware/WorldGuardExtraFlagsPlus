@@ -139,8 +139,11 @@ public class ConsoleCommandRepeatFlagHandler extends FlagValueChangeHandler<Set<
 						String processed = CommandPlaceholderUtil.prepareForDispatch(player, parsed.command);
 						if (!processed.isEmpty())
 						{
-							CommandSender console = Bukkit.getServer().getConsoleSender();
-							Bukkit.getServer().dispatchCommand(console, processed);
+							WorldGuardUtils.getScheduler().runNextTick(task ->
+							{
+								CommandSender console = Bukkit.getServer().getConsoleSender();
+								Bukkit.getServer().dispatchCommand(console, processed);
+							});
 						}
 					}
 
