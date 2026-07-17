@@ -31,7 +31,7 @@ import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.flags.Flag;
 
 import lombok.Getter;
-
+import dev.tins.worldguardextraflagsplus.api.FlagDescriptions.FlagMeta;
 import dev.tins.worldguardextraflagsplus.disablecompletely.DisableCompletelyQuery;
 import dev.tins.worldguardextraflagsplus.flags.Flags;
 import dev.tins.worldguardextraflagsplus.protocollib.ProtocolLibHelper;
@@ -134,6 +134,8 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 			if (Config.isFlagEnabled("permit-workbenches")) flagRegistry.register(Flags.PERMIT_WORKBENCHES);
 			if (Config.isFlagEnabled("entry-min-level")) flagRegistry.register(Flags.ENTRY_MIN_LEVEL);
 			if (Config.isFlagEnabled("entry-max-level")) flagRegistry.register(Flags.ENTRY_MAX_LEVEL);
+			if (Config.isFlagEnabled("entry-permission")) flagRegistry.register(Flags.ENTRY_PERMISSION);
+			if (Config.isFlagEnabled("entry-deny-permission")) flagRegistry.register(Flags.ENTRY_DENY_PERMISSION);
 			if (Config.isFlagEnabled("player-count-limit")) flagRegistry.register(Flags.PLAYER_COUNT_LIMIT);
 			if (Config.isFlagEnabled("villager-trade")) flagRegistry.register(Flags.VILLAGER_TRADE);
 			if (Config.isFlagEnabled("inventory-craft")) flagRegistry.register(Flags.INVENTORY_CRAFT);
@@ -219,6 +221,7 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 		if (Config.isFlagEnabled("console-command-on-entry")) this.sessionManager.registerHandler(ConsoleCommandOnEntryFlagHandler.FACTORY(), null);
 		if (Config.isFlagEnabled("console-command-on-exit")) this.sessionManager.registerHandler(ConsoleCommandOnExitFlagHandler.FACTORY(), null);
 			if (Config.isFlagEnabled("entry-min-level") || Config.isFlagEnabled("entry-max-level")) this.sessionManager.registerHandler(EntryLevelFlagHandler.FACTORY(plugin), null);
+			if (Config.isFlagEnabled("entry-permission") || Config.isFlagEnabled("entry-deny-permission")) this.sessionManager.registerHandler(EntryPermissionFlagHandler.FACTORY(plugin), null);
 			if (Config.isFlagEnabled("player-count-limit")) this.sessionManager.registerHandler(PlayerCountLimitFlagHandler.FACTORY(plugin), null);
 		
 		// Initialize collision handler when disable-collision flag is enabled

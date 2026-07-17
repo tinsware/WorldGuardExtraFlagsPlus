@@ -263,6 +263,21 @@ public final class PluginConfig {
 		})
 		private boolean entryMinLevel = true;
 		private boolean entryMaxLevel = true;
+		@Comment({
+			"entry-permission flag",
+			"Allows players with the specified permission to enter the region.",
+			"Usage: /rg flag <region> entry-permission myPlugin.permission",
+			"Default: true"
+		})
+		private boolean entryPermission = true;
+		@Comment({
+			"entry-deny-permission flag",
+			"Denies entry to players with the specified permission.",
+			"If a player has both entry-permission and entry-deny-permission, entry-permission takes priority.",
+			"Usage: /rg flag <region> entry-deny-permission myPlugin.deny",
+			"Default: true"
+		})
+		private boolean entryDenyPermission = true;
 		private boolean playerCountLimit = true;
 
 		@Comment({

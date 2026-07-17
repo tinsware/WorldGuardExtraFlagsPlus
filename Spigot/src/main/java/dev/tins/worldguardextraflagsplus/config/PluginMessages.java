@@ -58,6 +58,12 @@ public final class PluginMessages {
 	@Comment("Entry level flags messages")
 	private String entryMaxLevelDenied = "&cYour level (&7{current}&c) is so high to enter this area. &7Max: &8{required}";
 	
+	@Comment("Entry permission flags messages")
+	private String entryPermissionDenied = "&cHey! &7You do not have the required permission {permission} to enter this area.";
+	
+	@Comment("Entry permission flags messages")
+	private String entryDenyPermissionDenied = "&cHey! &7You may not enter this area with the permission {permission}.";
+
 	@Comment("Disable completely flag message")
 	private String disableCompletelyBlocked = "&cHey! &7You can not use {item} in here!";
 	

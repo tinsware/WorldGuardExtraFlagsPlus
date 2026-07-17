@@ -228,6 +228,8 @@ public class Config
 			// Entry Control
 			case "entry-min-level": return flags.isEntryMinLevel();
 			case "entry-max-level": return flags.isEntryMaxLevel();
+			case "entry-permission": return flags.isEntryPermission();
+			case "entry-deny-permission": return flags.isEntryDenyPermission();
 			case "player-count-limit": return flags.isPlayerCountLimit();
 
 			// Special Features
