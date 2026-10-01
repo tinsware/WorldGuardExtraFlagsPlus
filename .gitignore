@@ -96,6 +96,7 @@ nb-configuration.xml
 WG/target
 Spigot/target
 .here/
+.local-docs/
 
 ## OS X
 .DS_Store

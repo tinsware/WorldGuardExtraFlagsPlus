@@ -25,6 +25,7 @@ import com.sk89q.worldguard.protection.flags.StateFlag.State;
 import lombok.RequiredArgsConstructor;
 import dev.tins.worldguardextraflagsplus.flags.Flags;
 import dev.tins.worldguardextraflagsplus.Config;
+import dev.tins.worldguardextraflagsplus.wg.WorldGuardUtils;
 import dev.tins.worldguardextraflagsplus.listeners.BucketAllowSupport.AllowDecision;
 import dev.tins.worldguardextraflagsplus.listeners.BucketAllowSupport.BucketMaterials;
 
@@ -74,7 +75,7 @@ public class BlockListener implements Listener
 		}
 		
 		// Check if flag is set in region (check player location for performance)
-		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(localPlayer.getLocation());
+		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(blockLocation);
 		Set<String> flagSet = regions.queryValue(localPlayer, Flags.PERMIT_WORKBENCHES);
 		if (flagSet == null || flagSet.isEmpty())
 		{
@@ -137,7 +138,7 @@ public class BlockListener implements Listener
 		}
 		
 		LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
-		if (this.sessionManager.hasBypass(localPlayer, localPlayer.getWorld()))
+		if (WorldGuardUtils.hasBypass(this.sessionManager, localPlayer, player))
 		{
 			return;
 		}
@@ -193,7 +194,7 @@ public class BlockListener implements Listener
 		}
 		
 		LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
-		if (this.sessionManager.hasBypass(localPlayer, localPlayer.getWorld()))
+		if (WorldGuardUtils.hasBypass(this.sessionManager, localPlayer, player))
 		{
 			return;
 		}

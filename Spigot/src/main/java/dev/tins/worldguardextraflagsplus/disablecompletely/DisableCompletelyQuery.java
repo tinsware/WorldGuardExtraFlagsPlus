@@ -6,6 +6,7 @@ import com.sk89q.worldguard.protection.regions.RegionContainer;
 import com.sk89q.worldguard.session.SessionManager;
 import dev.tins.worldguardextraflagsplus.Messages;
 import dev.tins.worldguardextraflagsplus.flags.Flags;
+import dev.tins.worldguardextraflagsplus.wg.WorldGuardUtils;
 import dev.tins.worldguardextraflagsplus.flags.helpers.BlockableItemFlag;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -49,7 +50,7 @@ public final class DisableCompletelyQuery
 			return false;
 		}
 		LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
-		if (this.sessionManager.hasBypass(localPlayer, localPlayer.getWorld()))
+		if (WorldGuardUtils.hasBypass(this.sessionManager, localPlayer, player))
 		{
 			return false;
 		}
@@ -58,7 +59,7 @@ public final class DisableCompletelyQuery
 		{
 			return false;
 		}
-		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(localPlayer.getLocation());
+		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(WorldGuardUtils.adaptLocation(player.getLocation()));
 		Set<String> set = regions.queryValue(localPlayer, Flags.DISABLE_COMPLETELY);
 		if (set == null || set.isEmpty())
 		{

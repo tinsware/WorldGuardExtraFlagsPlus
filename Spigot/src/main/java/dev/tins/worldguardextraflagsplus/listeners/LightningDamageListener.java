@@ -7,6 +7,7 @@ import com.sk89q.worldguard.protection.regions.RegionContainer;
 import com.sk89q.worldguard.protection.flags.StateFlag.State;
 import com.sk89q.worldguard.session.SessionManager;
 import dev.tins.worldguardextraflagsplus.flags.Flags;
+import dev.tins.worldguardextraflagsplus.wg.WorldGuardUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -57,7 +58,7 @@ public class LightningDamageListener implements Listener
         LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
 
         // Bypass for players with WorldGuard bypass permission
-        if (this.sessionManager.hasBypass(localPlayer, localPlayer.getWorld()))
+        if (WorldGuardUtils.hasBypass(this.sessionManager, localPlayer, player))
         {
             return;
         }

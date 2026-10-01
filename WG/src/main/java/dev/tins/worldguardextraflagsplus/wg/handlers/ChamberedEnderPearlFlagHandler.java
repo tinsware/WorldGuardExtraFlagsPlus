@@ -1,5 +1,6 @@
 package dev.tins.worldguardextraflagsplus.wg.handlers;
 
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.bukkit.BukkitPlayer;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.World;
@@ -40,7 +41,12 @@ public class ChamberedEnderPearlFlagHandler extends FlagValueChangeHandler<State
 	@Override
 	protected void onInitialValue(LocalPlayer player, ApplicableRegionSet set, State value)
 	{
-		this.handleValue(player, player.getWorld(), value);
+		Player bukkitPlayer = ((BukkitPlayer) player).getPlayer();
+		if (bukkitPlayer == null)
+		{
+			return;
+		}
+		this.handleValue(player, BukkitAdapter.adapt(bukkitPlayer.getWorld()), value);
 	}
 
 	@Override

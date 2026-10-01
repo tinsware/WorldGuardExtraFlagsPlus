@@ -3,11 +3,16 @@ package dev.tins.worldguardextraflagsplus.wg;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.Plugin;
 
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldguard.LocalPlayer;
+import com.sk89q.worldguard.session.SessionManager;
 import com.tcoded.folialib.FoliaLib;
 import com.tcoded.folialib.wrapper.task.WrappedTask;
 
@@ -69,6 +74,50 @@ public class WorldGuardUtils
 	public static Plugin getPlugin()
 	{
 		return plugin;
+	}
+
+	/**
+	 * Adapts a Bukkit world for WorldGuard without calling {@link LocalPlayer#getWorld()}.
+	 * On Folia/Canvas with FAWE, {@code LocalPlayer#getWorld()} and {@code LocalPlayer#getLocation()}
+	 * on event threads can block via FAWE's {@code FoliaTaskManager.syncWith} and throw
+	 * {@link IllegalStateException}.
+	 */
+	public static com.sk89q.worldedit.world.World adaptWorld(World bukkitWorld)
+	{
+		return BukkitAdapter.adapt(bukkitWorld);
+	}
+
+	/**
+	 * Adapts a Bukkit location for region queries without calling {@link LocalPlayer#getLocation()}.
+	 * See {@link #adaptWorld(World)} for the Folia + FAWE threading issue.
+	 */
+	public static com.sk89q.worldedit.util.Location adaptLocation(Location bukkitLocation)
+	{
+		return BukkitAdapter.adapt(bukkitLocation);
+	}
+
+	/**
+	 * Resolves the WorldEdit world from a Bukkit location (event block/entity position, etc.).
+	 */
+	public static com.sk89q.worldedit.world.World worldFromBukkitLocation(Location bukkitLocation)
+	{
+		return (com.sk89q.worldedit.world.World) adaptLocation(bukkitLocation).getExtent();
+	}
+
+	/**
+	 * WorldGuard bypass check using a Bukkit player world (safe on Folia event threads with FAWE).
+	 */
+	public static boolean hasBypass(SessionManager sessionManager, LocalPlayer localPlayer, Player bukkitPlayer)
+	{
+		return sessionManager.hasBypass(localPlayer, adaptWorld(bukkitPlayer.getWorld()));
+	}
+
+	/**
+	 * WorldGuard bypass check using an explicit Bukkit world.
+	 */
+	public static boolean hasBypass(SessionManager sessionManager, LocalPlayer localPlayer, World bukkitWorld)
+	{
+		return sessionManager.hasBypass(localPlayer, adaptWorld(bukkitWorld));
 	}
 	
 	public static class SchedulerWrapper

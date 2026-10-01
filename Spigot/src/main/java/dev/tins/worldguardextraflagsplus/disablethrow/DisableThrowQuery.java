@@ -7,6 +7,7 @@ import com.sk89q.worldguard.session.SessionManager;
 import dev.tins.worldguardextraflagsplus.Messages;
 import dev.tins.worldguardextraflagsplus.flags.Flags;
 import dev.tins.worldguardextraflagsplus.flags.helpers.ThrowableItemFlag;
+import dev.tins.worldguardextraflagsplus.wg.WorldGuardUtils;
 import org.bukkit.Material;
 import org.bukkit.entity.Egg;
 import org.bukkit.entity.EnderPearl;
@@ -102,12 +103,12 @@ public final class DisableThrowQuery
 			return false;
 		}
 		LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
-		if (this.sessionManager.hasBypass(localPlayer, localPlayer.getWorld()))
+		if (WorldGuardUtils.hasBypass(this.sessionManager, localPlayer, player))
 		{
 			return false;
 		}
 		String name = material.name();
-		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(localPlayer.getLocation());
+		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(WorldGuardUtils.adaptLocation(player.getLocation()));
 		Set<String> set = regions.queryValue(localPlayer, Flags.DISABLE_THROW);
 		if (set == null || set.isEmpty())
 		{

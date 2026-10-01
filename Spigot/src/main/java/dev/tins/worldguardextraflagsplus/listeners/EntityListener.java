@@ -107,7 +107,7 @@ public class EntityListener implements Listener
 		if (event.getEntity() instanceof Player player)
 		{
 			localPlayer = this.worldGuardPlugin.wrapPlayer(player);
-			if (this.sessionManager.hasBypass(localPlayer, localPlayer.getWorld()))
+			if (WorldGuardUtils.hasBypass(this.sessionManager, localPlayer, player))
 			{
 				return;
 			}
@@ -142,7 +142,7 @@ public class EntityListener implements Listener
     {
         Player player = event.getPlayer();
         LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
-        if (this.sessionManager.hasBypass(localPlayer, localPlayer.getWorld()))
+        if (WorldGuardUtils.hasBypass(this.sessionManager, localPlayer, player))
         {
             return;
         }
@@ -251,7 +251,7 @@ public class EntityListener implements Listener
     {
         Player player = event.getPlayer();
         LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
-        if (this.sessionManager.hasBypass(localPlayer, localPlayer.getWorld()))
+        if (WorldGuardUtils.hasBypass(this.sessionManager, localPlayer, player))
         {
             return;
         }
@@ -272,7 +272,7 @@ public class EntityListener implements Listener
             return;
         }
         LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
-        if (this.sessionManager.hasBypass(localPlayer, localPlayer.getWorld()))
+        if (WorldGuardUtils.hasBypass(this.sessionManager, localPlayer, player))
         {
             return;
         }
@@ -293,7 +293,7 @@ public class EntityListener implements Listener
             return;
         }
         LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
-        if (this.sessionManager.hasBypass(localPlayer, localPlayer.getWorld()))
+        if (WorldGuardUtils.hasBypass(this.sessionManager, localPlayer, player))
         {
             return;
         }
@@ -333,7 +333,7 @@ public class EntityListener implements Listener
         
         Player player = event.getPlayer();
         LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
-        if (this.sessionManager.hasBypass(localPlayer, localPlayer.getWorld()))
+        if (WorldGuardUtils.hasBypass(this.sessionManager, localPlayer, player))
         {
             return;
         }
@@ -499,7 +499,7 @@ public class EntityListener implements Listener
 		}
 
 		LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
-		if (this.sessionManager.hasBypass(localPlayer, localPlayer.getWorld()))
+		if (WorldGuardUtils.hasBypass(this.sessionManager, localPlayer, player))
 		{
 			return;
 		}
@@ -533,12 +533,12 @@ public class EntityListener implements Listener
 		if (entity instanceof Player player)
 		{
 			LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
-			if (this.sessionManager.hasBypass(localPlayer, localPlayer.getWorld()))
+			if (WorldGuardUtils.hasBypass(this.sessionManager, localPlayer, player))
 			{
 				return;
 			}
 
-			ForcedStateFlag.ForcedState state = this.regionContainer.createQuery().queryValue(localPlayer.getLocation(), localPlayer, Flags.GLIDE);
+			ForcedStateFlag.ForcedState state = this.regionContainer.createQuery().queryValue(WorldGuardUtils.adaptLocation(player.getLocation()), localPlayer, Flags.GLIDE);
 			switch(state)
 			{
 				case ALLOW:
@@ -580,7 +580,7 @@ public class EntityListener implements Listener
 	/**
 	 * Checks if a workbench is blocked by permit-workbenches flag
 	 */
-	private boolean isWorkbenchBlocked(LocalPlayer localPlayer, Material blockMaterial)
+	private boolean isWorkbenchBlocked(LocalPlayer localPlayer, Material blockMaterial, com.sk89q.worldedit.util.Location queryLocation)
 	{
 		// Check if this is a workbench block
 		String workbenchType = WORKBENCH_TYPE_MAP.get(blockMaterial);
@@ -590,7 +590,7 @@ public class EntityListener implements Listener
 		}
 		
 		// Check if flag is set in region (inheritance handled automatically by WorldGuard)
-		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(localPlayer.getLocation());
+		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(queryLocation);
 		Set<String> flagSet = regions.queryValue(localPlayer, Flags.PERMIT_WORKBENCHES);
 		if (flagSet == null || flagSet.isEmpty())
 		{
@@ -682,13 +682,13 @@ public class EntityListener implements Listener
 		
 		Player player = event.getPlayer();
 		LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
-		if (this.sessionManager.hasBypass(localPlayer, localPlayer.getWorld()))
+		if (WorldGuardUtils.hasBypass(this.sessionManager, localPlayer, player))
 		{
 			return;
 		}
 		
 		Material blockMaterial = block.getType();
-		if (isWorkbenchBlocked(localPlayer, blockMaterial))
+		if (isWorkbenchBlocked(localPlayer, blockMaterial, BukkitAdapter.adapt(block.getLocation())))
 		{
 			event.setCancelled(true);
 			sendWorkbenchBlocked(player, getWorkbenchDisplayName(blockMaterial));
@@ -718,13 +718,13 @@ public class EntityListener implements Listener
 			}
 			
 			LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
-			if (this.sessionManager.hasBypass(localPlayer, localPlayer.getWorld()))
+			if (WorldGuardUtils.hasBypass(this.sessionManager, localPlayer, player))
 			{
 				return;
 			}
 			
 			// Check inventory-craft flag
-			ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(localPlayer.getLocation());
+			ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(WorldGuardUtils.adaptLocation(player.getLocation()));
 			com.sk89q.worldguard.protection.flags.StateFlag.State state = regions.queryState(localPlayer, Flags.INVENTORY_CRAFT);
 			if (state == com.sk89q.worldguard.protection.flags.StateFlag.State.DENY)
 			{
@@ -757,13 +757,13 @@ public class EntityListener implements Listener
 		}
 		
 		LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
-		if (this.sessionManager.hasBypass(localPlayer, localPlayer.getWorld()))
+		if (WorldGuardUtils.hasBypass(this.sessionManager, localPlayer, player))
 		{
 			return;
 		}
 		
 		// Check if crafting is blocked (crafting table only)
-		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(localPlayer.getLocation());
+		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(WorldGuardUtils.adaptLocation(player.getLocation()));
 		Set<String> flagSet = regions.queryValue(localPlayer, Flags.PERMIT_WORKBENCHES);
 		if (flagSet != null && !flagSet.isEmpty())
 		{
@@ -809,12 +809,12 @@ public class EntityListener implements Listener
 		}
 		
 		LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
-		if (this.sessionManager.hasBypass(localPlayer, localPlayer.getWorld()))
+		if (WorldGuardUtils.hasBypass(this.sessionManager, localPlayer, player))
 		{
 			return;
 		}
 		
-		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(localPlayer.getLocation());
+		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(WorldGuardUtils.adaptLocation(player.getLocation()));
 		
 		// Check inventory crafting (2x2 grid) - NEW FLAG
 		if (event.getInventory().getType() == org.bukkit.event.inventory.InventoryType.CRAFTING)

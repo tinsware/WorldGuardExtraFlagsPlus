@@ -7,6 +7,7 @@ import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import com.sk89q.worldguard.session.SessionManager;
 import dev.tins.worldguardextraflagsplus.listeners.BucketAllowSupport.AllowDecision;
+import dev.tins.worldguardextraflagsplus.wg.WorldGuardUtils;
 import dev.tins.worldguardextraflagsplus.listeners.BucketAllowSupport.BucketMaterials;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Material;
@@ -30,7 +31,7 @@ public class BucketListener implements Listener
 	{
 		Player player = event.getPlayer();
 		LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
-		if (this.sessionManager.hasBypass(localPlayer, localPlayer.getWorld()))
+		if (WorldGuardUtils.hasBypass(this.sessionManager, localPlayer, player))
 		{
 			return;
 		}
@@ -47,7 +48,7 @@ public class BucketListener implements Listener
 	{
 		Player player = event.getPlayer();
 		LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
-		if (this.sessionManager.hasBypass(localPlayer, localPlayer.getWorld()))
+		if (WorldGuardUtils.hasBypass(this.sessionManager, localPlayer, player))
 		{
 			return;
 		}

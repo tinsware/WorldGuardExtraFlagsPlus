@@ -71,7 +71,7 @@ public class PlayerListener implements Listener
 		}
 
 		LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
-		if (this.sessionManager.hasBypass(localPlayer, localPlayer.getWorld()))
+		if (WorldGuardUtils.hasBypass(this.sessionManager, localPlayer, player))
 		{
 			return;
 		}
@@ -120,7 +120,7 @@ public class PlayerListener implements Listener
 		Player player = event.getEntity();
 
 		LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
-		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(localPlayer.getLocation());
+		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(WorldGuardUtils.adaptLocation(player.getLocation()));
 		
 		Boolean keepInventory = regions.queryValue(localPlayer, Flags.KEEP_INVENTORY);
 		if (keepInventory != null)
@@ -153,7 +153,7 @@ public class PlayerListener implements Listener
 		Player player = event.getPlayer();
 
 		LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
-		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(localPlayer.getLocation());
+		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(WorldGuardUtils.adaptLocation(player.getLocation()));
 		
 		String prefix = regions.queryValue(localPlayer, Flags.CHAT_PREFIX);
 		if (prefix != null)
@@ -226,7 +226,7 @@ public class PlayerListener implements Listener
 		Player player = event.getPlayer();
 		LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
 		
-		Location respawnLocation = this.regionContainer.createQuery().queryValue(localPlayer.getLocation(), localPlayer, Flags.RESPAWN_LOCATION);
+		Location respawnLocation = this.regionContainer.createQuery().queryValue(WorldGuardUtils.adaptLocation(player.getLocation()), localPlayer, Flags.RESPAWN_LOCATION);
 		if (respawnLocation != null)
 		{
 			event.setRespawnLocation(BukkitAdapter.adapt(respawnLocation));
@@ -331,7 +331,7 @@ public class PlayerListener implements Listener
 		Player player = event.getPlayer();
 		LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
 
-		if (this.regionContainer.createQuery().queryState(localPlayer.getLocation(), localPlayer, Flags.ITEM_DURABILITY) == State.DENY)
+		if (this.regionContainer.createQuery().queryState(WorldGuardUtils.adaptLocation(player.getLocation()), localPlayer, Flags.ITEM_DURABILITY) == State.DENY)
 		{
 			event.setCancelled(true);
 		}
@@ -358,7 +358,7 @@ public class PlayerListener implements Listener
 		// Check collision flag for players already in regions on join
 		// Query the region directly to ensure collision is applied even if handler hasn't triggered yet
 		LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
-		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(localPlayer.getLocation());
+		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(WorldGuardUtils.adaptLocation(player.getLocation()));
 		Boolean collisionValue = regions.queryValue(localPlayer, Flags.DISABLE_COLLISION);
 		if (collisionValue != null && collisionValue)
 		{
@@ -397,7 +397,7 @@ public class PlayerListener implements Listener
 		
 		// Check collision flag on world change
 		LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
-		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(localPlayer.getLocation());
+		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(WorldGuardUtils.adaptLocation(player.getLocation()));
 		Boolean collisionValue = regions.queryValue(localPlayer, Flags.DISABLE_COLLISION);
 		if (collisionValue != null && collisionValue)
 		{
@@ -416,12 +416,12 @@ public class PlayerListener implements Listener
 		Player player = event.getPlayer();
 		LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
 
-		if (this.sessionManager.hasBypass(localPlayer, localPlayer.getWorld()))
+		if (WorldGuardUtils.hasBypass(this.sessionManager, localPlayer, player))
 		{
 			return;
 		}
 
-		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(localPlayer.getLocation());
+		ApplicableRegionSet regions = this.regionContainer.createQuery().getApplicableRegions(WorldGuardUtils.adaptLocation(player.getLocation()));
 		Boolean keepInventory = regions.queryValue(localPlayer, Flags.KEEP_INVENTORY);
 		if (!Boolean.TRUE.equals(keepInventory))
 		{
@@ -468,7 +468,7 @@ public class PlayerListener implements Listener
 		Player player = event.getPlayer();
 		LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
 		
-		if (this.sessionManager.hasBypass(localPlayer, localPlayer.getWorld()))
+		if (WorldGuardUtils.hasBypass(this.sessionManager, localPlayer, player))
 		{
 			return;
 		}
@@ -496,7 +496,7 @@ public class PlayerListener implements Listener
 		
 		LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
 		
-		if (this.sessionManager.hasBypass(localPlayer, localPlayer.getWorld()))
+		if (WorldGuardUtils.hasBypass(this.sessionManager, localPlayer, player))
 		{
 			return;
 		}

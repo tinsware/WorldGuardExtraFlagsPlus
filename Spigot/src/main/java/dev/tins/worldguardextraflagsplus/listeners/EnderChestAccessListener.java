@@ -9,6 +9,7 @@ import com.sk89q.worldguard.protection.regions.RegionContainer;
 import com.sk89q.worldguard.session.SessionManager;
 import dev.tins.worldguardextraflagsplus.Messages;
 import dev.tins.worldguardextraflagsplus.flags.Flags;
+import dev.tins.worldguardextraflagsplus.wg.WorldGuardUtils;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -93,7 +94,7 @@ public class EnderChestAccessListener implements Listener
 	{
 		LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
 
-		if (this.sessionManager.hasBypass(localPlayer, localPlayer.getWorld()))
+		if (WorldGuardUtils.hasBypass(this.sessionManager, localPlayer, player))
 		{
 			return false;
 		}
