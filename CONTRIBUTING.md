@@ -10,13 +10,13 @@ The project has two Maven modules:
 
 ```
 WG/          — WorldGuard / WorldEdit integration (flag declarations, session handlers)
-Spigot/      — Bukkit server module (config, listeners, plugin lifecycle)
+Paper/      — Bukkit server module (config, listeners, plugin lifecycle)
 ```
 
 - **Flag declarations** go in `WG/src/main/java/dev/tins/worldguardextraflagsplus/flags/Flags.java`
 - **Custom flag types** go in `WG/src/main/java/dev/tins/worldguardextraflagsplus/flags/helpers/`
 - **Session handlers** go in `WG/src/main/java/dev/tins/worldguardextraflagsplus/wg/handlers/`
-- **Bukkit event listeners** go in `Spigot/src/main/java/dev/tins/worldguardextraflagsplus/listeners/`
+- **Bukkit event listeners** go in `Paper/src/main/java/dev/tins/worldguardextraflagsplus/listeners/`
 - **Config** is managed via ConfigLib: `PluginConfig.java` + `Config.java`
 - **Plugin lifecycle** (flag registration, listener registration) is in `WorldGuardExtraFlagsPlusPlugin.java`
 
@@ -166,7 +166,7 @@ Use the short class name — the wildcard import `dev.tins.worldguardextraflagsp
 
 ### 9. Add metadata to `FlagDescriptions`
 
-Every flag must have a human-readable entry in `Spigot/src/main/java/dev/tins/worldguardextraflagsplus/api/FlagDescriptions.java`.
+Every flag must have a human-readable entry in `Paper/src/main/java/dev/tins/worldguardextraflagsplus/api/FlagDescriptions.java`.
 Add a line in the static initialiser block:
 
 ```java
@@ -230,7 +230,7 @@ This plugin supports Folia. Follow these rules:
 ### Maintainer-owned (do not change in contributor PRs)
 
 - **Version numbers** — Do not bump `version` in `pom.xml`, `plugin.yml`, or README release lines. Maintainers set versions when cutting a release.
-- **Changelog / GitHub release text** — Do not edit published release notes or maintainer changelog drafts. Describe the change in the PR title and body instead.
+- **GitHub release text** — Do not edit published release notes or maintainer-only drafts in `.local-docs/`. Describe the change in the PR title and body instead.
 - **README** — Keep the in-repo README as a short overview; link to the [tinsware Wiki](https://tinsware.github.io/wiki/docs/games/minecraft/plugins/worldguard-extraflags-plus/) for detailed flag docs unless a maintainer asks for a README update.
 - **Branding / startup art** — Do not add or change plugin logo or console branding in feature PRs.
 
@@ -244,7 +244,7 @@ Maintainers may cherry-pick or re-implement accepted ideas on their own timeline
 mvn clean package
 ```
 
-The output jar will be in `Spigot/target/WorldGuardExtraFlagsPlus-{version}.jar`.
+The output jar will be in `Paper/target/worldguard-extraflagsplus-{version}.jar`.
 
 ### Dependencies
 

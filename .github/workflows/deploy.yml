@@ -26,7 +26,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: WorldGuardExtraFlagsPlus Jar
-        path: "${{ github.workspace }}/Spigot/target/worldguard-extraflagsplus-*.jar"
+        path: "${{ github.workspace }}/Paper/target/worldguard-extraflagsplus-*.jar"
 
   # Disabled until maintainers publish releases again — avoids duplicate builds on release: created.
   # release:
@@ -46,6 +46,6 @@ jobs:
   #   - name: Upload Release Asset
   #     uses: softprops/action-gh-release@v1
   #     with:
-  #       files: Spigot/target/worldguard-extraflagsplus-*.jar
+  #       files: Paper/target/worldguard-extraflagsplus-*.jar
   #     env:
   #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -94,7 +94,7 @@ nb-configuration.xml
 
 # Other things
 WG/target
-Spigot/target
+Paper/target
 .here/
 .local-docs/
 

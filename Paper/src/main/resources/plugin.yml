@@ -3,7 +3,7 @@ description: |
   WorldGuard ExtraFlags Plus (WGEFP) — 44+ extra region flags for WorldGuard: item & throwable blocking, entry control (XP / permission / player count), chat formatting, and region command automation. Folia supported.
   GitHub: https://github.com/tinsware/WorldGuardExtraFlagsPlus
 main: dev.tins.worldguardextraflagsplus.WorldGuardExtraFlagsPlusPlugin
-version: 4.4.5
+version: 4.4.6
 api-version: '1.21'
 folia-supported: true
 depend: [ WorldGuard ]

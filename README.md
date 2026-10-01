@@ -2,7 +2,7 @@
 
 WorldGuard ExtraFlags Plus (WGEFP) is a plugin extension for [WorldGuard](https://github.com/EngineHub/WorldGuard) that adds **45+ extra region flags** — item & throwable blocking, entry control, chat formatting, and region command automation.
 
-**Release 4.4.5**
+**Release 4.4.6**
 
 ## ⚠️ Warning DO NOT USE BOTH PLUGINS TOGETHER!
 
@@ -108,5 +108,5 @@ Install [PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.6245/
 
 ## Support & Community
 
-- 📜 **Changelog:** [CHANGELOG.md](CHANGELOG.md) (release **4.4.5**)
+- 📜 **Release notes:** [GitHub Releases](https://github.com/tinsware/WorldGuardExtraFlagsPlus/releases) (latest: **4.4.6**)
 - 💬 **Discord:** [Join our Discord server](https://tinsware.github.io/discord)

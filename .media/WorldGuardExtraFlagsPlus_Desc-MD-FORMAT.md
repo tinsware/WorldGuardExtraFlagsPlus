@@ -1,6 +1,6 @@
 # WorldGuard ExtraFlags Plus (WGEFP)
 
-**Release 4.4.5**
+**Release 4.4.6**
 
 An advanced WorldGuard extension that adds **45+ extra region flags** for full control of player behavior, teleportation, and region rules — featuring Folia support, item blocking (Mace, Firework, Wind Charge, Totem, Goat Horn, Spears), throwable-only blocking (`disable-throw` for egg, snowball, pearl, XP bottle), optional PacketEvents/ProtocolLib packet hooks for full `disable-completely` coverage, and fully customizable messages.
 
@@ -48,7 +48,7 @@ All managed with standard WorldGuard flag commands.
 
 | Minecraft       | WorldGuard | ExtraFlagsPlus | Support   |
 | --------------- | ---------- | -------------- | --------- |
-| 1.21 – 26.2+ | 7.0.15+    | 4.4.5+         | ✅ Active |
+| 1.21 – 26.2+ | 7.0.15+    | 4.4.6+         | ✅ Active |
 | 1.7 – 1.19     | Older      | ❌ No support  |           |
 
 The jar declares `api-version: 1.21` in `plugin.yml` so Paper **1.21.x** servers (and forks such as Canvas) load it.
@@ -68,7 +68,7 @@ All plugin messages live in `plugins/WorldGuard/messages-wgefp.yml`.
 
 ## Support & Community
 
-- 📜 **Changelog:** [CHANGELOG.md](https://github.com/tinsware/WorldGuardExtraFlagsPlus/blob/master/CHANGELOG.md) — release **4.4.5**
+- 📜 **Release notes:** [GitHub Releases](https://github.com/tinsware/WorldGuardExtraFlagsPlus/releases) (latest: **4.4.6**)
 - 💬 **Discord:** [Join our Discord server](https://tinsware.github.io/discord)
 
 ⭐ If you like this project, give it a star on [GitHub](https://github.com/tinsware/WorldGuardExtraFlagsPlus)
