@@ -227,6 +227,15 @@ This plugin supports Folia. Follow these rules:
 
 - If the PR touches multiple unrelated features, split into separate PRs.
 
+### Maintainer-owned (do not change in contributor PRs)
+
+- **Version numbers** — Do not bump `version` in `pom.xml`, `plugin.yml`, or README release lines. Maintainers set versions when cutting a release.
+- **Changelog / GitHub release text** — Do not edit published release notes or maintainer changelog drafts. Describe the change in the PR title and body instead.
+- **README** — Keep the in-repo README as a short overview; link to the [tinsware Wiki](https://tinsware.github.io/wiki/docs/games/minecraft/plugins/worldguard-extraflags-plus/) for detailed flag docs unless a maintainer asks for a README update.
+- **Branding / startup art** — Do not add or change plugin logo or console branding in feature PRs.
+
+Maintainers may cherry-pick or re-implement accepted ideas on their own timeline and credit contributors in release notes.
+
 ---
 
 ## Building
