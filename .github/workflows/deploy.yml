@@ -3,18 +3,21 @@
 on:
   push:
     branches: [ master ]
-  release:
-    types: [ created ]
+  # Re-enable when publishing GitHub Releases with jar assets:
+  # release:
+  #   types: [ created ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Set up JDK 21
+    # Paper API 26.1.x / WorldGuard 7.0.18+ dependency jars require JDK 25+ to compile (class file 69).
+    # Maven still targets Java 21 bytecode via <release>21</release> in the root pom.
+    - name: Set up JDK 25
       uses: actions/setup-java@v4
       with:
-        java-version: '21'
+        java-version: '25'
         distribution: 'temurin'
         cache: maven
     - name: Build with Maven
@@ -24,27 +27,25 @@ jobs:
       with:
         name: WorldGuardExtraFlagsPlus Jar
         path: "${{ github.workspace }}/Spigot/target/worldguard-extraflagsplus-*.jar"
-  
-  release:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up JDK 21
-      uses: actions/setup-java@v4
-      with:
-        java-version: '21'
-        distribution: 'temurin'
-        cache: maven
-    - name: Build with Maven
-      run: mvn -B package --file pom.xml
-    - name: Upload Release Asset
-      uses: softprops/action-gh-release@v1
-      with:
-        files: Spigot/target/worldguard-extraflagsplus-*.jar
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-
-
+  # Disabled until maintainers publish releases again — avoids duplicate builds on release: created.
+  # release:
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: write
+  #   steps:
+  #   - uses: actions/checkout@v4
+  #   - name: Set up JDK 25
+  #     uses: actions/setup-java@v4
+  #     with:
+  #       java-version: '25'
+  #       distribution: 'temurin'
+  #       cache: maven
+  #   - name: Build with Maven
+  #     run: mvn -B package --file pom.xml
+  #   - name: Upload Release Asset
+  #     uses: softprops/action-gh-release@v1
+  #     with:
+  #       files: Spigot/target/worldguard-extraflagsplus-*.jar
+  #     env:
+  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
