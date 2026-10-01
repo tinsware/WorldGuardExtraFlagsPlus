@@ -1,0 +1,8 @@
+# Dependabot: start with GitHub Actions only. Review Maven bumps manually (Paper API, WorldGuard, FAWE).
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
