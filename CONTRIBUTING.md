@@ -107,6 +107,7 @@ import com.sk89q.worldguard.protection.flags.StateFlag.State;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import com.sk89q.worldguard.session.SessionManager;
 import dev.tins.worldguardextraflagsplus.flags.Flags;
+import dev.tins.worldguardextraflagsplus.wg.WorldGuardUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -135,7 +136,8 @@ public class YourFlagListener implements Listener
 
         LocalPlayer localPlayer = this.worldGuardPlugin.wrapPlayer(player);
 
-        if (this.sessionManager.hasBypass(localPlayer, localPlayer.getWorld()))
+        // Folia/Canvas + FAWE: never use localPlayer.getWorld() on the event thread (blocks via FAWE).
+        if (WorldGuardUtils.hasBypass(this.sessionManager, localPlayer, player))
             return;
 
         State state = this.regionContainer.createQuery().queryState(
