@@ -58,6 +58,6 @@
    
    <modules>
    	<module>WG</module>
-   	<module>Spigot</module>
+   	<module>Paper</module>
    </modules>
 </project>
