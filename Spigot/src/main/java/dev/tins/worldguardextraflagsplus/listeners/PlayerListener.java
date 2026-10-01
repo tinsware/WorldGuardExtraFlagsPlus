@@ -81,6 +81,16 @@ public class PlayerListener implements Listener
 			return;
 		}
 
+		this.scheduleFlyRefresh(player);
+	}
+
+	/**
+	 * Re-applies the fly flag from the regions at the player's location once the teleport or
+	 * world change has settled. Queried when the task runs, never from a value cached before the move,
+	 * so a player who left a fly region is not given flight back.
+	 */
+	private void scheduleFlyRefresh(Player player)
+	{
 		WorldGuardUtils.getScheduler().runAtEntity(player, (wrappedTask) -> {
 			if (!player.isOnline())
 			{
@@ -374,16 +384,14 @@ public class PlayerListener implements Listener
 
 		//Some plugins toggle flight off on world change based on permissions,
 		//so we need to make sure to force the flight status.
+		//The cached value may belong to the region the player just left (the exit update is still
+		//queued), so re-query the destination instead of re-applying it (#8).
 		if (Config.isFlagEnabled("fly"))
 		{
 			FlyFlagHandler flyHandler = this.sessionManager.get(this.worldGuardPlugin.wrapPlayer(player)).getHandler(FlyFlagHandler.class);
-			if (flyHandler != null)
+			if (flyHandler != null && flyHandler.getCurrentValue() != null)
 			{
-				Boolean flyValue = flyHandler.getCurrentValue();
-				if (flyValue != null)
-				{
-					WorldGuardUtils.getScheduler().runAtEntity(player, (wrappedTask) -> player.setAllowFlight(flyValue));
-				}
+				this.scheduleFlyRefresh(player);
 			}
 		}
 		
