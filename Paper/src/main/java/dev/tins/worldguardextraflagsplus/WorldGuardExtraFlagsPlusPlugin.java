@@ -153,6 +153,8 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 			if (Config.isFlagEnabled("chambered-enderpearl")) flagRegistry.register(Flags.CHAMBERED_ENDERPEARL);
 			if (Config.isFlagEnabled("hide-players")) flagRegistry.register(Flags.HIDE_PLAYERS);
 			if (Config.isFlagEnabled("lightning-damage")) flagRegistry.register(Flags.LIGHTNING_DAMAGE);
+			if (Config.isFlagEnabled("allow-windburst")) flagRegistry.register(Flags.ALLOW_WIND_BURST);
+			if (Config.isFlagEnabled("destroy-items")) flagRegistry.register(Flags.DESTROY_ITEMS);
 			if (Config.isFlagEnabled("deny-mobspawn")) flagRegistry.register(Flags.DENY_MOB_SPAWN);
 			if (Config.isFlagEnabled("console-command-repeat")) flagRegistry.register(Flags.CONSOLE_COMMAND_REPEAT);
 			if (Config.isFlagEnabled("console-command-timer")) flagRegistry.register(Flags.CONSOLE_COMMAND_TIMER);
@@ -258,6 +260,19 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 			this.getServer().getPluginManager().registerEvents(
 					new LightningDamageListener(
 							this.worldGuardPlugin, this.regionContainer, this.sessionManager), this);
+		}
+
+		if (Config.isFlagEnabled("allow-windburst"))
+		{
+			this.getServer().getPluginManager().registerEvents(
+					new WindBurstListener(
+							this.worldGuardPlugin, this.regionContainer, this.sessionManager), this);
+		}
+
+		if (Config.isFlagEnabled("destroy-items"))
+		{
+			this.getServer().getPluginManager().registerEvents(
+					new DestroyItemsListener(this.regionContainer), this);
 		}
 
 		if (Config.isFlagEnabled("deny-mobspawn"))

@@ -237,6 +237,8 @@ public class Config
 			case "chambered-enderpearl": return flags.isChamberedEnderPearl();
 			case "hide-players": return flags.isHidePlayers();
 			case "lightning-damage": return flags.isLightningDamage();
+			case "allow-windburst": return flags.isAllowWindBurst();
+			case "destroy-items": return flags.isDestroyItems();
 			case "deny-mobspawn": return flags.isDenyMobSpawn();
 			case "console-command-repeat": return flags.isConsoleCommandRepeat();
 			case "console-command-timer": return flags.isConsoleCommandTimer();
