@@ -345,6 +345,24 @@ public final class PluginConfig {
 		private boolean lightningDamage = true;
 
 		@Comment({
+			"allow-windburst flag",
+			"When set to false on a region, Wind Burst mace hits still deal damage",
+			"but don't launch the attacker.",
+			"Usage: /rg flag <region> allow-windburst false",
+			"Default: true"
+		})
+		private boolean allowWindBurst = true;
+
+		@Comment({
+			"destroy-items flag",
+			"When set to false on a region, dropped items can't be destroyed by lava,",
+			"fire, cactus, explosions or other damage.",
+			"Usage: /rg flag <region> destroy-items false",
+			"Default: true"
+		})
+		private boolean destroyItems = true;
+
+		@Comment({
 			"MOB & SPAWN CONTROL",
 			"-------------------",
 			"deny-mobspawn flag",

@@ -47,6 +47,8 @@ WorldGuard ExtraFlags Plus (WGEFP) is a plugin extension for [WorldGuard](https:
 - **`disable-collision`** — Disable player collision in regions.
   - *Uses Minecraft's native scoreboard teams to control collision. TAB plugin is supported with API integration. May conflict with other plugins that use teams. See [disable-collision documentation](https://tinsware.github.io/wiki/docs/games/minecraft/plugins/worldguard-extraflags-plus/flags-reference#disable-collision) for details.*
 - **`chunk-unload`**, **`nether-portals`**, **`worldedit`**, **`lightning-damage`**, **`frostwalker`**, **`play-sounds`** — World interaction flags: chunk unload control, portal use, WorldEdit/FAWE gating, visual-only lightning (ideal for PvP arenas), frostwalker control, and per-region sound effects.
+- **`allow-windburst`** — Set to `false` so Wind Burst mace hits still deal damage but don't launch the attacker.
+- **`destroy-items`** — Set to `false` so dropped items can't be destroyed by lava, fire, cactus or explosions.
 
 ### 🧟 Mob & Spawn Control
 

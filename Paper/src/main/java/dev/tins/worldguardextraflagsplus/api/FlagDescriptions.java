@@ -262,6 +262,16 @@ public final class FlagDescriptions
 				"allow / deny",
 				"/rg flag <region> lightning-damage deny"));
 
+		ALL.put("allow-windburst", new FlagMeta(
+				"When set to false, hits with a Wind Burst mace still deal damage, but the enchantment does not launch the attacker. Useful for spawn and PvP areas.",
+				"true / false",
+				"/rg flag <region> allow-windburst false"));
+
+		ALL.put("destroy-items", new FlagMeta(
+				"When set to false, dropped items in the region cannot be destroyed by lava, fire, cactus, explosions or other damage.",
+				"true / false",
+				"/rg flag <region> destroy-items false"));
+
 		// ── MOB & SPAWN CONTROL ──────────────────────────────────────────
 		ALL.put("deny-mobspawn", new FlagMeta(
 				"Blocks spawning of mobs in the listed categories inside the region. Categories: ALL_HOSTILE (every Enemy mob, bosses included), ALL_NEUTRAL (mobs that only attack when provoked), ALL_PEACEFUL (every other living mob: villagers, animals, fish, bats, allays, armor stands, ...), ALL (all three), or specific EntityType names (e.g. ZOMBIE, CREEPER) for per-mob control. Use clear to reset. Works alongside vanilla WorldGuard deny-spawn / mob-spawning.",

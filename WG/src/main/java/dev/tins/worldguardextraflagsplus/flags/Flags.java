@@ -108,6 +108,20 @@ public final class Flags
 	public final static StateFlag LIGHTNING_DAMAGE = new StateFlag("lightning-damage", true);
 
 	/**
+	 * When set to false, hits with a Wind Burst mace in this region still deal damage,
+	 * but the enchantment does not launch the attacker.
+	 * Usage: /rg flag &lt;region&gt; allow-windburst false
+	 */
+	public final static BooleanFlag ALLOW_WIND_BURST = new BooleanFlag("allow-windburst");
+
+	/**
+	 * When set to false, dropped items in this region cannot be destroyed by lava, fire, cactus,
+	 * explosions or any other damage.
+	 * Usage: /rg flag &lt;region&gt; destroy-items false
+	 */
+	public final static BooleanFlag DESTROY_ITEMS = new BooleanFlag("destroy-items");
+
+	/**
 	 * Blocks spawning of mobs in the listed categories within the region.
 	 * Accepted values (comma-separated): ALL_HOSTILE, ALL_NEUTRAL, ALL_PEACEFUL, ALL,
 	 * or specific EntityType names (e.g. ZOMBIE, CREEPER) for per-mob control.
