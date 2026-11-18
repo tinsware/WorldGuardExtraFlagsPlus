@@ -158,7 +158,6 @@ public class Config
 		}
 	}
 
-
 	// Flag control methods
 	public static boolean isFlagEnabled(String flagName)
 	{
@@ -240,6 +239,9 @@ public class Config
 			case "deny-mobspawn": return flags.isDenyMobSpawn();
 			case "console-command-repeat": return flags.isConsoleCommandRepeat();
 			case "console-command-timer": return flags.isConsoleCommandTimer();
+			case "mob-damage-deny": return flags.isMobDamageDeny();
+			case "mob-damage-allow": return flags.isMobDamageAllow();
+			case "raid-enabled": return flags.isRaidEnabled();
 
 			// PlaceholderAPI
 			case "papi-placeholders": return flags.isPapiPlaceholders();
@@ -286,14 +288,21 @@ public class Config
 		return "deny-first".equalsIgnoreCase(getCheckOrder());
 	}
 
-	public static String getWaterloggedMaterialCheck()
-	{
-		if (config == null || config.getAllowBlockBreakSettings() == null)
-		{
+	public static String getWaterloggedMaterialCheck() {
+		if (config == null || config.getAllowBlockBreakSettings() == null) {
 			return WATERLOGGED_MATERIAL_CHECK_DEFAULT;
 		}
 
 		String value = config.getAllowBlockBreakSettings().getWaterloggedMaterialCheck();
 		return value != null ? value : WATERLOGGED_MATERIAL_CHECK_DEFAULT;
 	}
+	public static String getMobDamageDenyMessage()
+	{
+		if (config == null || config.getAllFlagsControl() == null)
+		{
+			return "&cHey! &7You cannot harm that mob here.";
+		}
+		return config.getAllFlagsControl().getMobDamageDenyMessage();
+	}
+
 }

@@ -360,7 +360,41 @@ public final class PluginConfig {
 		})
 		private boolean denyMobSpawn = true;
 
-	@Comment({
+		@Comment({
+				"mob-damage-deny flag",
+				"Denies players from damaging listed mob categories or EntityTypes within the region.",
+				"Supports region groups via -g (e.g. -g NON_MEMBER, -g NON_OWNER, or ALL by default).",
+				"Usage: /rg flag <region> mob-damage-deny VILLAGER,IRON_GOLEM",
+				"Default: true"
+		})
+		private boolean mobDamageDeny = true;
+
+		@Comment({
+				"Message sent to the player when mob-damage-deny blocks an attack.",
+				"Uses the region's WorldGuard deny-message flag if set, otherwise falls back to this message.",
+				"Set to \"\" (empty) to disable the message.",
+				"Default: \"&cHey! &7You cannot harm that mob here.\""
+		})
+		private String mobDamageDenyMessage = "&cHey! &7You cannot harm that mob here.";
+
+		@Comment({
+				"mob-damage-allow flag",
+				"Allows players to damage listed mob categories or EntityTypes within the region,",
+				"overriding mob-damage-deny and WorldGuard's damage-animals protection.",
+				"Usage: /rg flag <region> mob-damage-allow COW,PIG,SHEEP,CHICKEN",
+				"Default: true"
+		})
+		private boolean mobDamageAllow = true;
+
+		@Comment({
+				"raid-enabled flag",
+				"Controls whether village raids can start or spawn waves in this region.",
+				"Usage: /rg flag <region> raid-enabled deny",
+				"Default: true"
+		})
+		private boolean raidEnabled = true;
+
+		@Comment({
 		"COMMAND REPEAT",
 		"-------------",
 		"console-command-repeat flag",

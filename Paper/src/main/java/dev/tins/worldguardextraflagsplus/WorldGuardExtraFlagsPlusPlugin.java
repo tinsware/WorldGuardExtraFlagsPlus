@@ -154,6 +154,9 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 			if (Config.isFlagEnabled("hide-players")) flagRegistry.register(Flags.HIDE_PLAYERS);
 			if (Config.isFlagEnabled("lightning-damage")) flagRegistry.register(Flags.LIGHTNING_DAMAGE);
 			if (Config.isFlagEnabled("deny-mobspawn")) flagRegistry.register(Flags.DENY_MOB_SPAWN);
+			if (Config.isFlagEnabled("mob-damage-deny")) flagRegistry.register(Flags.MOB_DAMAGE_DENY);
+			if (Config.isFlagEnabled("mob-damage-allow")) flagRegistry.register(Flags.MOB_DAMAGE_ALLOW);
+			if (Config.isFlagEnabled("raid-enabled")) flagRegistry.register(Flags.RAID_ENABLED);
 			if (Config.isFlagEnabled("console-command-repeat")) flagRegistry.register(Flags.CONSOLE_COMMAND_REPEAT);
 			if (Config.isFlagEnabled("console-command-timer")) flagRegistry.register(Flags.CONSOLE_COMMAND_TIMER);
 		}
@@ -264,6 +267,15 @@ public class WorldGuardExtraFlagsPlusPlugin extends JavaPlugin
 		{
 			this.getServer().getPluginManager().registerEvents(
 					new MobSpawnListener(this.worldGuardPlugin, this.regionContainer), this);
+		}
+
+		if (Config.isFlagEnabled("mob-damage-deny") || Config.isFlagEnabled("mob-damage-allow"))
+		{
+			this.getServer().getPluginManager().registerEvents(new MobDamageListener(this.worldGuardPlugin, this.regionContainer), this);
+		}
+		if (Config.isFlagEnabled("raid-enabled"))
+		{
+			this.getServer().getPluginManager().registerEvents(new RaidListener(this.regionContainer), this);
 		}
 
 		if (Config.isFlagEnabled("console-command-repeat"))
