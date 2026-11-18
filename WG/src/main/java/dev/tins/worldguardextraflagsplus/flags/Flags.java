@@ -120,6 +120,24 @@ public final class Flags
 	public final static SetFlag<String> DENY_MOB_SPAWN = new CustomSetFlag("deny-mobspawn", new MobSpawnDenyCategoryFlag(null));
 
 	/**
+	 * Denies players from damaging listed mob categories or EntityTypes within the region.
+	 * Supports region groups via -g (e.g. -g NON_MEMBER, -g NON_OWNER, or ALL by default).
+	 */
+	public final static SetFlag<String> MOB_DAMAGE_DENY = new CustomSetFlag("mob-damage-deny", new MobSpawnDenyCategoryFlag(null));
+
+	/**
+	 * Allows players to damage listed mob categories or EntityTypes within the region,
+	 * overriding mob-damage-deny and WorldGuard's damage-animals protection.
+	 */
+	public final static SetFlag<String> MOB_DAMAGE_ALLOW = new CustomSetFlag("mob-damage-allow", new MobSpawnDenyCategoryFlag(null));
+
+	/**
+	 * Controls whether village raids can start or spawn waves in this region.
+	 * Default is allow (true). Set to deny to suppress raids.
+	 */
+	public final static StateFlag RAID_ENABLED = new StateFlag("raid-enabled", true);
+
+	/**
 	 * Repeats a console command at a fixed interval while a player stays in the region.
 	 * Each entry format: {@code <seconds> <command>}
 	 * Interval must be between 1 and 60 seconds.
